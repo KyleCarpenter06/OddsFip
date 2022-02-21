@@ -42,7 +42,7 @@ function getNBAData()
         
         xhr.open("GET", "https://api-nba-v1.p.rapidapi.com/games/date/2022-02-25");
         xhr.setRequestHeader("x-rapidapi-host", "api-nba-v1.p.rapidapi.com");
-        xhr.setRequestHeader("x-rapidapi-key", "5030f425cbmshbda1c5146e3344bp1aed35jsnb774fd33a0c7");
+        xhr.setRequestHeader("x-rapidapi-key", config.MY_API_KEY);
         
         xhr.send(data);
     });
