@@ -1,6 +1,22 @@
 $(function()
 {
-    $("#game").load("game.html");
+    var $game1 = $('<div>');
+    $game1.load("game.html", function()
+    {
+        $("#game").append($game1);
+        var gameDIV = $("#game").find('.game-div');
+    });
+
+    //
+    //gameDIV.attr("id", "test");
+    //var gameDIV = $("#game").find("span");
+
+    
+    
+
+    var $game2 = $('<div>');
+    $game2.load("game.html");
+    //$("#game").append($game2);
 })
 
 async function callNBAAPI()
@@ -42,7 +58,7 @@ function getNBAData()
         
         xhr.open("GET", "https://api-nba-v1.p.rapidapi.com/games/date/2022-02-25");
         xhr.setRequestHeader("x-rapidapi-host", "api-nba-v1.p.rapidapi.com");
-        xhr.setRequestHeader("x-rapidapi-key", config.MY_API_KEY);
+        xhr.setRequestHeader("x-rapidapi-key", config.NBA_API_KEY);
         
         xhr.send(data);
     });
