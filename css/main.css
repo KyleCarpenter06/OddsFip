@@ -21,6 +21,7 @@ time, mark, audio, video {
 }
 /* #endregion */
 
+/* #region MAIN CLASSES */
 html
 {
     background-color: #faf1b7;
@@ -37,6 +38,81 @@ header
     line-height: 75px;
     text-align: center;
 }
+main
+{
+    padding: 15px;
+}
+h1
+{
+    font-size: 36px;
+}
+h2
+{
+    font-size: 32px;
+}
+h3
+{
+    font-size: 26px;
+}
+h4
+{
+    font-size: 20px;
+}
+
+/* flex classes */
+.flex-break
+{
+    flex-basis: 100%;
+    height: 0;
+}
+
+/* #endregion */
+
+/* #region DATE SECTION */
+#date-section
+{
+    display: flex;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+#odds-board-sport, #odds-board-api
+{
+    width: 300px;
+}
+
+#odds-board-cal
+{
+    flex: 1;
+    margin: auto;
+    text-align: center;
+}
+/* #endregion */
+
+/* #region GAME SECTION */
+#games
+{
+    display: flex;
+    gap:10px;
+    flex-wrap: wrap;
+}
+.game-container
+{
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.4);
+}
+/* #endregion */
+
+/* #region TEAM CLASSES */
+.team-container
+{
+    display: flex;
+    align-items: center;
+    align-content: center;
+}
 
 .team-div
 {
@@ -45,19 +121,67 @@ header
 
 .team-img
 {
-    display: inline-block;
     vertical-align: middle;
+    width: 50px;
 }
 
 .team-img img
 {
-    width: 50px;
+    width: 40px;
+    height: 40px;
+    object-fit:contain;
 }
 
 .team-name
 {
     font-size: 16px;
-    display: inline-block;
     vertical-align: middle;
     line-height: 50px;
+    margin-left: 5px;
+    width: 145px;
 }
+
+.bet-box-container
+{
+    width: 25px;
+}
+
+.bet-box
+{
+    width: 15px;
+    height: 15px;
+    border: 1px solid black;
+    border-radius: 2px;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+.team-bet-text-container
+{
+    display: flex;
+    align-items: center;
+    line-height: 5px;
+    height: 5px;
+}
+
+.team-bet-text-left-space
+{
+    margin-left: 200px;
+    display: inline-block;
+}
+
+.bet-text
+{
+    line-height: 5px;
+    width: 25px;
+    display: inline-block;
+    text-align: center;
+}
+/* #endregion */
+
+/* #region OTHER CLASSES */
+#call-nba-api
+{
+    float: right;
+}
+/* #endregion */

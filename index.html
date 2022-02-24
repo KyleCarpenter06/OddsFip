@@ -9,7 +9,26 @@
         <header>
             OddsFlip
         </header>
-        <input type="button" value="Call NBA API" onclick="callNBAAPI()"/>
-        <div id="game"></div>
+        <main>
+            <section id="date-section">
+                <h3 id="odds-board-sport">
+                    NBA Odds Board
+                </h3>
+                <div id="odds-board-cal">
+                    <input type="date"/>
+                </div>
+                <div id="odds-board-api">
+                    <input id="call-nba-api" type="button" value="Call NBA API" onclick="callNBAAPI()"/>
+                </div>
+                <div class="flex-break"></div>
+                <h4 id="odds-board-date">
+                    Today's Date
+                </h4>
+                
+            </section>
+            <section id="games-section">
+                <div id="games"></div>
+            </section>
+        </main>
     </body>
 </html>
