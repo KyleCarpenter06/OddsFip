@@ -178,7 +178,22 @@ function NBA_API_CALL()
 
 function NBA_API_CALL_TEAM()
 {
-    return new Promise(function (resolve, reject)
+    const settings = {
+        "async": true,
+        "crossDomain": true,
+        "url": "https://api-nba-v1.p.rapidapi.com/seasons",
+        "method": "GET",
+        "headers": {
+            "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
+            "x-rapidapi-key": "36295fe761msh0b5b0d48018d51ep183204jsnfcc0d03f8496"
+        }
+    };
+    
+    $.ajax(settings).done(function (response) {
+        console.log(response);
+    });
+    
+    /* return new Promise(function (resolve, reject)
     {
         const data = null;
 
@@ -200,14 +215,14 @@ function NBA_API_CALL_TEAM()
 
         xhr.onerror = function(e)
         {
-            alert(e.type + ":" + e.loaded);
+            alert(e.type + ":" + this.status);
         };
         
-        xhr.open("GET", "https://api-nba-v1.p.rapidapi.com/seasons");
+        xhr.open("GET", "http://api-nba-v1.p.rapidapi.com/seasons");
         xhr.setRequestHeader("x-rapidapi-host", "api-nba-v1.p.rapidapi.com");
         xhr.setRequestHeader("x-rapidapi-key", "36295fe761msh0b5b0d48018d51ep183204jsnfcc0d03f8496");
         
         xhr.send(data);
-    }); 
+    });  */
 }
 // #endregion
