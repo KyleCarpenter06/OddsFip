@@ -87,9 +87,30 @@ function getNBAData()
 // #region NBA API functions
 async function callNBAAPI()
 {   
-    await NBA_API_CALL()
+    if(typeof config !== "undefined")
+    {
+        await NBA_API_CALL()
         .then((response) => nbaResponse(response))
         .catch((error) => alert(error));
+    }
+    else
+    {
+        alert("Error: config.js file is missing.")
+    }
+}
+
+async function callNBAAPITeam()
+{
+    if(typeof config !== "undefined")
+    {
+        await NBA_API_CALL_TEAM()
+        .then((response) => nbaResponse_Team(response))
+        .catch((error) => alert(error));
+    }
+    else
+    {
+        alert("Error: config.js file is missing.")
+    }
 }
 
 function nbaResponse(response)
@@ -108,6 +129,23 @@ function nbaResponse(response)
     }
 }
 
+function nbaResponse_Team(response)
+{
+    var resp = response;
+    /* // Put the object into storage
+    localStorage.setItem('NBA_API_OBJ', JSON.stringify(response));
+
+    // check to make sure storage object exists
+    if(localStorage.getItem('NBA_API_OBJ') !== null)
+    {
+        getNBAData();
+    }
+    else
+    {
+        alert("Error: No NBA Object found.")
+    } */
+}
+
 function NBA_API_CALL()
 {
     return new Promise(function (resolve, reject)
@@ -123,6 +161,11 @@ function NBA_API_CALL()
             {
                 resolve(JSON.parse(this.responseText))
             }
+
+            if(this.readyState === 4 && this.status === 403)
+            {
+                reject(this.responseText)
+            }
         };
         
         xhr.open("GET", "https://api-nba-v1.p.rapidapi.com/games/date/2022-02-25");
@@ -131,5 +174,40 @@ function NBA_API_CALL()
         
         xhr.send(data);
     });
+}
+
+function NBA_API_CALL_TEAM()
+{
+    return new Promise(function (resolve, reject)
+    {
+        const data = null;
+
+        const xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
+    
+        xhr.onreadystatechange = function()
+        {
+            if(this.readyState === 4 && this.status === 200)
+            {
+                resolve(JSON.parse(this.responseText))
+            }
+
+            if(this.readyState === 4 && this.status === 403)
+            {
+                reject(this.responseText)
+            }
+        };
+
+        xhr.onerror = function(e)
+        {
+            alert(e.type + ":" + e.loaded);
+        };
+        
+        xhr.open("GET", "https://api-nba-v1.p.rapidapi.com/seasons");
+        xhr.setRequestHeader("x-rapidapi-host", "api-nba-v1.p.rapidapi.com");
+        xhr.setRequestHeader("x-rapidapi-key", "36295fe761msh0b5b0d48018d51ep183204jsnfcc0d03f8496");
+        
+        xhr.send(data);
+    }); 
 }
 // #endregion
