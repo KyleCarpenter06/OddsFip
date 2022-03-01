@@ -1,3 +1,7 @@
+// #region global variables
+var nbaAPI_Date = "https://api-nba-v1.p.rapidapi.com/games?date=";
+// #endregion
+
 // #region init function
 $(function()
 {
@@ -11,8 +15,16 @@ $(function()
 function getTodaysDate()
 {
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    var today  = new Date();
-    $("#odds-board-date").text(today.toLocaleDateString("en-US", options));
+
+    // testing UTC date
+    var todayDate = new Date();
+    var todayDateUTC = todayDate.getUTCDate();
+    $("#odds-board-date").text(todayDate.toLocaleDateString("en-US", options));
+    var todayUTCStr = todayDate.toISOString().split('T')[0];
+
+
+    //var today  = new Date();
+    //$("#odds-board-date").text(today.toLocaleDateString("en-US", options));
 }
 
 function checkNBAGameData()
@@ -65,6 +77,16 @@ function getNBAGameData()
             $("#games").append($game);
         });
     });
+}
+
+function getNBAStatsData()
+{
+    // Retrieve the object from storage
+    var retrievedObject = localStorage.getItem('NBA_STATS_API_OBJ');
+    var nbaOBJ = new Object();
+    nbaOBJ = JSON.parse(retrievedObject);
+
+
 }
 // #endregion
 
@@ -146,35 +168,6 @@ function NBA_GAME_API_CALL()
     {
         $.ajax(settings).done(resolve).fail(reject);
     });
-
-    /* return new Promise(function (resolve, reject)
-    {
-        
-
-        const data = null;
-
-        const xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
-    
-        xhr.onreadystatechange = function()
-        {
-            if(this.readyState === 4 && this.status === 200)
-            {
-                resolve(JSON.parse(this.responseText))
-            }
-
-            if(this.readyState === 4 && this.status === 403)
-            {
-                reject(this.responseText)
-            }
-        };
-        
-        xhr.open("GET", "https://api-nba-v1.p.rapidapi.com/games/date/2022-02-25");
-        xhr.setRequestHeader("x-rapidapi-host", "api-nba-v1.p.rapidapi.com");
-        xhr.setRequestHeader("x-rapidapi-key", config.NBA_API_KEY);
-        
-        xhr.send(data);
-    }); */
 }
 
 function NBA_STATS_API_CALL()
