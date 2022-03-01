@@ -1,5 +1,38 @@
 // #region global variables
 var nbaAPI_Date = "https://api-nba-v1.p.rapidapi.com/games?date=";
+var today_Date = "";
+var nba_Games_Array = [];
+// #endregion
+
+// #region game object class
+let NBA_Game = class
+{
+    constructor(home, away)
+    {
+        this.homeTeam = home;
+        this.awayTeam = away;
+    }
+};
+
+let NBA_Team = class
+{
+    static teamName;
+    static id;
+    static game1;
+    static game2;
+    static game3;
+    static game4;
+    static game5;
+    static game6;
+    static game7;
+    static game8;
+    static game9;
+    static game10;
+    static season;
+    static home;
+    static away;
+    static weighted;
+}
 // #endregion
 
 // #region init function
@@ -16,15 +49,27 @@ function getTodaysDate()
 {
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
-    // testing UTC date
+    // get current date (utc)
     var todayDate = new Date();
-    var todayDateUTC = todayDate.getUTCDate();
     $("#odds-board-date").text(todayDate.toLocaleDateString("en-US", options));
-    var todayUTCStr = todayDate.toISOString().split('T')[0];
+    today_Date = todayDate.toISOString().split('T')[0];
 
+    // set api date string
+    nbaAPI_Date = nbaAPI_Date + today_Date;
+}
 
-    //var today  = new Date();
-    //$("#odds-board-date").text(today.toLocaleDateString("en-US", options));
+function confirmTodaysDate()
+{
+    // Retrieve the object from storage
+    var retrievedObject = localStorage.getItem('NBA_GAME_API_OBJ');
+    var nbaOBJ = new Object();
+    nbaOBJ = JSON.parse(retrievedObject);
+
+    if(nbaOBJ.parameters.date !== today_Date)
+    {
+        return false
+    }
+    else return true;
 }
 
 function checkNBAGameData()
@@ -32,7 +77,8 @@ function checkNBAGameData()
     // get nba stats object from local storage
     if(localStorage.getItem('NBA_GAME_API_OBJ') !== null)
     {
-        getNBAGameData();
+        // if todays date matches local item, get data else call new data
+        confirmTodaysDate == true ? getNBAGameData() : callNBAGameAPI();
     }
     // if local storage doesn't exist, make api call
     else
@@ -53,9 +99,15 @@ function getNBAGameData()
     // for each game, loop to get data
     nbaOBJ.response.forEach(function(game, i)
     {
+        // load seperate 'game.html' into main game div
         var $game = $('<div>');
         $game.load("game.html", function()
         {
+            // create new NBA Game Object
+            var homeTeam = new NBA_Team();
+            var awayTeam = new NBA_Team();
+            var nbaGame = new NBA_Game(homeTeam, awayTeam);
+
             // get current game
             var $currentGame = $game.find('.game-container');
 
@@ -69,9 +121,18 @@ function getNBAGameData()
             // set team names
             var awayTeamName = $currentGame.find('.team-name').eq(0);
             awayTeamName.text(game.teams.visitors.nickname);
+            awayTeam.teamName = game.teams.visitors.nickname;
 
             var homeTeamName = $currentGame.find('.team-name').eq(1);
             homeTeamName.text(game.teams.home.nickname);
+            homeTeam.teamName = game.teams.home.nickname;
+
+            // set team ids
+            awayTeam.id = game.teams.visitors.id;
+            homeTeam.id = game.teams.home.id;
+
+            // add game to nba games array
+            nba_Games_Array.push(nbaGame);
 
             // add game template to main game div
             $("#games").append($game);
@@ -156,7 +217,7 @@ function NBA_GAME_API_CALL()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://api-nba-v1.p.rapidapi.com/games?date=2022-02-12",
+        "url": nbaAPI_Date,
         "method": "GET",
         "headers": {
             "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
