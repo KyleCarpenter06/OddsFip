@@ -18,17 +18,12 @@ let NBA_Team = class
 {
     static teamName;
     static id;
-    static game1;
-    static game2;
-    static game3;
-    static game4;
-    static game5;
-    static game6;
-    static game7;
-    static game8;
-    static game9;
-    static game10;
+    static last1;
+    static last3;
+    static last5;
+    static last10;
     static season;
+    static game6;
     static home;
     static away;
     static weighted;
@@ -41,6 +36,7 @@ $(function()
     // call initial functions
     getTodaysDate();
     checkNBAGameData();
+    checkNBAStatsData();
 })
 // #endregion
 
@@ -58,10 +54,10 @@ function getTodaysDate()
     nbaAPI_Date = nbaAPI_Date + today_Date;
 }
 
-function confirmTodaysDate()
+function confirmTodaysDate(nba_api_obj)
 {
     // Retrieve the object from storage
-    var retrievedObject = localStorage.getItem('NBA_GAME_API_OBJ');
+    var retrievedObject = localStorage.getItem(nba_api_obj);
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
 
@@ -78,12 +74,27 @@ function checkNBAGameData()
     if(localStorage.getItem('NBA_GAME_API_OBJ') !== null)
     {
         // if todays date matches local item, get data else call new data
-        confirmTodaysDate == true ? getNBAGameData() : callNBAGameAPI();
+        confirmTodaysDate('NBA_GAME_API_OBJ') == true ? getNBAGameData() : callNBAGameAPI();
     }
     // if local storage doesn't exist, make api call
     else
     {
         callNBAGameAPI();
+    }
+}
+
+function checkNBAStatsData()
+{
+    // get nba stats object from local storage
+    if(localStorage.getItem('NBA_STATS_API_OBJ') !== null)
+    {
+        // if todays date does not match local date, call new data
+        if(!confirmTodaysDate('NBA_STATS_API_OBJ')) callNBAStatsAPI();
+    }
+    // if local storage doesn't exist, make api call
+    else
+    {
+        callNBAStatsAPI();
     }
 }
 // #endregion
@@ -131,6 +142,9 @@ function getNBAGameData()
             awayTeam.id = game.teams.visitors.id;
             homeTeam.id = game.teams.home.id;
 
+            // collect stats
+            getNBAStatsData(awayTeam);
+
             // add game to nba games array
             nba_Games_Array.push(nbaGame);
 
@@ -140,13 +154,40 @@ function getNBAGameData()
     });
 }
 
-function getNBAStatsData()
+function getNBAStatsData(nbaTeam)
 {
     // Retrieve the object from storage
     var retrievedObject = localStorage.getItem('NBA_STATS_API_OBJ');
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
 
+    // create team games array
+    var teamGames = [];
+
+    // for each game, loop to get data
+    nbaOBJ.response.forEach(function(game)
+    {
+        // if home or away id matches current ID
+        if(game.teams.home.id == nbaTeam.id || game.teams.visitors.id == nbaTeam.id)
+        {
+            // if only games that were finished
+            if(game.date.end !== null)
+            {
+                teamGames.push(game);
+            }
+        }
+    });
+
+    // sort games by date
+    teamGames.sort(function(a,b)
+    {
+        return new Date(b.date.start) - new Date(a.date.start);
+    })
+
+    // --- compile and store stats
+    // last game
+    
+    //nbaTeam.last1 = teamGames[0].
 
 }
 // #endregion
@@ -198,18 +239,14 @@ function nbaGameResponse(response)
 
 function nbaStatsResponse(response)
 {
+    // place date function on response call to be stored
+    response.date = today_Date;
+
     // Put the object into storage
     localStorage.setItem('NBA_STATS_API_OBJ', JSON.stringify(response));
 
     // check to make sure storage object exists
-    if(localStorage.getItem('NBA_STATS_API_OBJ') !== null)
-    {
-        getNBAStatsData();
-    }
-    else
-    {
-        alert("Error: No NBA Stats Object found.")
-    }
+    if(localStorage.getItem('NBA_STATS_API_OBJ') == null) alert("Error: No NBA Stats Object found.")
 }
 
 function NBA_GAME_API_CALL()
@@ -236,7 +273,7 @@ function NBA_STATS_API_CALL()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://api-nba-v1.p.rapidapi.com/seasons",
+        "url": "https://api-nba-v1.p.rapidapi.com/games?season=2021",
         "method": "GET",
         "headers": {
             "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
