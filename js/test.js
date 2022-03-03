@@ -1,5 +1,4 @@
 // #region global variables
-var nbaAPI_Date = "https://api-nba-v1.p.rapidapi.com/games?date=";
 var today_Date = "";
 var nba_Games_Array = [];
 // #endregion
@@ -35,8 +34,7 @@ $(function()
 {
     // call initial functions
     getTodaysDate();
-    checkNBAGameData();
-    checkNBAStatsData();
+    checkNBAData();
 })
 // #endregion
 
@@ -51,7 +49,7 @@ function getTodaysDate()
     today_Date = todayDate.toISOString().split('T')[0];
 
     // set api date string
-    nbaAPI_Date = nbaAPI_Date + today_Date;
+    //nbaAPI_Date = nbaAPI_Date + today_Date;
 }
 
 function confirmTodaysDate(nba_api_obj)
@@ -68,47 +66,87 @@ function confirmTodaysDate(nba_api_obj)
     else return true;
 }
 
-function checkNBAGameData()
+function checkNBAData()
 {
     // get nba stats object from local storage
-    if(localStorage.getItem('NBA_GAME_API_OBJ') !== null)
+    if(localStorage.getItem('NBA_API_OBJ') !== null)
     {
         // if todays date matches local item, get data else call new data
-        confirmTodaysDate('NBA_GAME_API_OBJ') == true ? getNBAGameData() : callNBAGameAPI();
+        confirmTodaysDate('NBA_API_OBJ') == true ? getNBAGameData() : callNBAAPI();
     }
     // if local storage doesn't exist, make api call
     else
     {
-        callNBAGameAPI();
-    }
-}
-
-function checkNBAStatsData()
-{
-    // get nba stats object from local storage
-    if(localStorage.getItem('NBA_STATS_API_OBJ') !== null)
-    {
-        // if todays date does not match local date, call new data
-        if(!confirmTodaysDate('NBA_STATS_API_OBJ')) callNBAStatsAPI();
-    }
-    // if local storage doesn't exist, make api call
-    else
-    {
-        callNBAStatsAPI();
+        callNBAAPI();
     }
 }
 // #endregion
 
 // #region data functions
-function getNBAGameData()
+function getNBAData()
 {
     // Retrieve the object from storage
-    var retrievedObject = localStorage.getItem('NBA_GAME_API_OBJ');
+    var retrievedObject = localStorage.getItem('NBA_API_OBJ');
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
 
+    // create nba games array
+    var nbaGames = [];
+
     // for each game, loop to get data
-    nbaOBJ.response.forEach(function(game, i)
+    nbaOBJ.response.forEach(function(game)
+    {
+        // find if game is current date
+        var gameDate = new Date(game.date.start);
+        var currentDate = new Date();
+        if(gameDate.setHours(0,0,0,0) == currentDate.setHours(0,0,0,0))
+        {
+            // load seperate 'game.html' into main game div
+            var $game = $('<div>');
+            $game.load("game.html", function()
+            {
+                // create new NBA Game Object
+                var homeTeam = new NBA_Team();
+                var awayTeam = new NBA_Team();
+                var nbaGame = new NBA_Game(homeTeam, awayTeam);
+
+                // get current game
+                var $currentGame = $game.find('.game-container');
+
+                // set team logos
+                var awayTeamIMG = $currentGame.find('.team-img').eq(0).find("img");
+                awayTeamIMG.attr("src", game.teams.visitors.logo);
+
+                var homeTeamIMG = $currentGame.find('.team-img').eq(1).find("img");
+                homeTeamIMG.attr("src", game.teams.home.logo);
+
+                // set team names
+                var awayTeamName = $currentGame.find('.team-name').eq(0);
+                awayTeamName.text(game.teams.visitors.nickname);
+                awayTeam.teamName = game.teams.visitors.nickname;
+
+                var homeTeamName = $currentGame.find('.team-name').eq(1);
+                homeTeamName.text(game.teams.home.nickname);
+                homeTeam.teamName = game.teams.home.nickname;
+
+                // set team ids
+                awayTeam.id = game.teams.visitors.id;
+                homeTeam.id = game.teams.home.id;
+
+                // collect stats
+                getNBAStatsData(awayTeam);
+
+                // add game to nba games array
+                nba_Games_Array.push(nbaGame);
+
+                // add game template to main game div
+                $("#games").append($game);
+            });
+        }
+    });
+
+    // for each game, loop to get data
+    /* nbaOBJ.response.forEach(function(game, i)
     {
         // load seperate 'game.html' into main game div
         var $game = $('<div>');
@@ -151,7 +189,7 @@ function getNBAGameData()
             // add game template to main game div
             $("#games").append($game);
         });
-    });
+    }); */
 }
 
 function getNBAStatsData(nbaTeam)
@@ -184,6 +222,12 @@ function getNBAStatsData(nbaTeam)
         return new Date(b.date.start) - new Date(a.date.start);
     })
 
+    // testing
+    nbaOBJ.response.sort(function(a,b)
+    {
+        return new Date(b.date.start) - new Date(a.date.start);
+    })
+
     // --- compile and store stats
     // last game
     
@@ -193,12 +237,12 @@ function getNBAStatsData(nbaTeam)
 // #endregion
 
 // #region NBA API functions
-async function callNBAGameAPI()
+async function callNBAAPI()
 {   
     if(typeof config !== "undefined")
     {
-        await NBA_GAME_API_CALL()
-        .then((response) => nbaGameResponse(response))
+        await NBA_API_CALL()
+        .then((response) => nbaAPIResponse(response))
         .catch((error) => alert(error));
     }
     else
@@ -207,29 +251,15 @@ async function callNBAGameAPI()
     }
 }
 
-async function callNBAStatsAPI()
-{
-    if(typeof config !== "undefined")
-    {
-        await NBA_STATS_API_CALL()
-        .then((response) => nbaStatsResponse(response))
-        .catch((error) => alert(error));
-    }
-    else
-    {
-        alert("Error: config.js file is missing.")
-    }
-}
-
-function nbaGameResponse(response)
+function nbaAPIResponse(response)
 {
     // Put the object into storage
-    localStorage.setItem('NBA_GAME_API_OBJ', JSON.stringify(response));
+    localStorage.setItem('NBA_API_OBJ', JSON.stringify(response));
 
     // check to make sure storage object exists
-    if(localStorage.getItem('NBA_GAME_API_OBJ') !== null)
+    if(localStorage.getItem('NBA_API_OBJ') !== null)
     {
-        getNBAGameData();
+        getNBAData();
     }
     else
     {
@@ -237,38 +267,7 @@ function nbaGameResponse(response)
     }
 }
 
-function nbaStatsResponse(response)
-{
-    // place date function on response call to be stored
-    response.date = today_Date;
-
-    // Put the object into storage
-    localStorage.setItem('NBA_STATS_API_OBJ', JSON.stringify(response));
-
-    // check to make sure storage object exists
-    if(localStorage.getItem('NBA_STATS_API_OBJ') == null) alert("Error: No NBA Stats Object found.")
-}
-
-function NBA_GAME_API_CALL()
-{
-    const settings = {
-        "async": true,
-        "crossDomain": true,
-        "url": nbaAPI_Date,
-        "method": "GET",
-        "headers": {
-            "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
-            "x-rapidapi-key": config.NBA_API_KEY2
-        }
-    };
-    
-    return new Promise(function(resolve, reject)
-    {
-        $.ajax(settings).done(resolve).fail(reject);
-    });
-}
-
-function NBA_STATS_API_CALL()
+function NBA_API_CALL()
 {
     const settings = {
         "async": true,
@@ -277,7 +276,7 @@ function NBA_STATS_API_CALL()
         "method": "GET",
         "headers": {
             "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
-            "x-rapidapi-key": config.NBA_API_KEY2
+            "x-rapidapi-key": config.NBA_API_KEY
         }
     };
 
