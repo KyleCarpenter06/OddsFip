@@ -1,6 +1,7 @@
 // #region global variables
 var today_Date = "";
 var nba_Games_Array = [];
+var nba_Odds_Array = [];
 // #endregion
 
 // #region game object class
@@ -11,12 +12,18 @@ let NBA_Game = class
         this.homeTeam = home;
         this.awayTeam = away;
     }
+
+    static spread = "N/A";
+    static total = "N/A";
 };
 
 let NBA_Team = class
 {
     static teamName;
+    static teamFullName;
+    static abbv;
     static id;
+
     static last1; // 5% weighted score
     static last3; // 10% weighted score
     static last5; // 15% weighted score
@@ -33,8 +40,9 @@ $(function()
 {
     // call initial functions
     getTodaysDate();
-    checkNBAData();
     checkNBAOdds();
+    checkNBAData();
+    
 })
 // #endregion
 
@@ -87,12 +95,15 @@ function checkNBAOdds()
     if(localStorage.getItem('ODDS_API_OBJ') !== null)
     {
         // if todays date matches local item, get data else call new data
-        confirmTodaysDate('ODDS_API_OBJ') == true ? getNBAGameData() : callNBAAPI();
+        if (confirmTodaysDate('ODDS_API_OBJ') == false) 
+        {
+            callOddsAPI();
+        }
     }
     // if local storage doesn't exist, make api call
     else
     {
-        callNBAAPI();
+        callOddsAPI();
     }
 }
 // #endregion
@@ -104,9 +115,6 @@ function getNBAGameData()
     var retrievedObject = localStorage.getItem('NBA_API_OBJ');
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
-
-    // create nba games array
-    var nbaGames = [];
 
     // for each game, loop to get data
     nbaOBJ.response.forEach(function(game)
@@ -139,18 +147,29 @@ function getNBAGameData()
                 var awayTeamName = $currentGame.find('.team-name').eq(0);
                 awayTeamName.text(game.teams.visitors.nickname);
                 awayTeam.teamName = game.teams.visitors.nickname;
+                awayTeam.teamFullName = game.teams.visitors.name;
+                awayTeam.abbv = game.teams.visitors.code;
 
                 var homeTeamName = $currentGame.find('.team-name').eq(1);
                 homeTeamName.text(game.teams.home.nickname);
                 homeTeam.teamName = game.teams.home.nickname;
+                homeTeam.teamFullName = game.teams.home.name;
+                homeTeam.abbv = game.teams.home.code;
 
                 // set team ids
                 awayTeam.id = game.teams.visitors.id;
                 homeTeam.id = game.teams.home.id;
 
-                // collect stats
+                // compile stats
                 getNBATeamData(awayTeam, "away");
                 getNBATeamData(homeTeam, "home");
+
+                // compile odds
+                getNBAOddsData(nbaGame);
+                var gameSpread = $currentGame.find('.spread').eq(0);
+                gameSpread.text(nbaGame.spread);
+                var gameOverUnder = $currentGame.find('.overunder').eq(0);
+                gameOverUnder.text(nbaGame.total);
 
                 // add game to nba games array
                 nba_Games_Array.push(nbaGame);
@@ -269,12 +288,83 @@ function getNBATeamData(nbaTeam, nbaLocation)
 
 }
 
-function getNBAOddsData()
+function getNBAOddsData(nbaGame)
 {
+    checkNBAOdds();
+
     // Retrieve the object from storage
     var retrievedObject = localStorage.getItem('ODDS_API_OBJ');
     var oddsOBJ = new Object();
     oddsOBJ = JSON.parse(retrievedObject);
+
+    // create odds games array
+    var oddsGames = [];
+
+    // for each game, loop to get data
+    oddsOBJ.games.forEach(function(game)
+    {
+        // find if game is current date
+        var gameDate = new Date(game.commence_time);
+        var currentDate = new Date();
+        if(gameDate.setHours(0,0,0,0) == currentDate.setHours(0,0,0,0))
+        {
+            oddsGames.push(game);
+        }
+    });
+
+    // match each odds game with nba game
+    oddsGames.forEach(function(odds)
+    {
+        // if odds api name matches nba api name
+        if(nbaGame.homeTeam.teamFullName.split(" ").slice(-1)[0] == odds.home_team.split(" ").slice(-1)[0])
+        {
+            // iterate over each bookmaker
+            odds.bookmakers.forEach(function(booky)
+            {
+                // match with draftkings
+                if(booky.key == "draftkings")
+                {
+                    booky.markets.forEach(function(market)
+                    {
+                        if(market.key == "spreads")
+                        {
+                            // get smaller of two point spreads to get the favorite
+                            if(market.outcomes[0].point < market.outcomes[1].point)
+                            {
+                                // find the favorite names and get abbv
+                                if(market.outcomes[0].name == nbaGame.homeTeam.teamFullName)
+                                {
+                                    nbaGame.spread = nbaGame.homeTeam.abbv + market.outcomes[0].point;
+                                }
+                                else
+                                {
+                                    nbaGame.spread = nbaGame.awayTeam.abbv + market.outcomes[0].point;
+                                }
+                            }
+                            else
+                            {
+                                // find the favorite names and get abbv
+                                if(market.outcomes[1].name == nbaGame.homeTeam.teamFullName)
+                                {
+                                    nbaGame.spread = nbaGame.homeTeam.abbv + market.outcomes[1].point;
+                                }
+                                else
+                                {
+                                    nbaGame.spread = nbaGame.awayTeam.abbv + market.outcomes[1].point;
+                                }
+                            }
+                        }
+
+                        if(market.key == "totals")
+                        {
+                            nbaGame.total = market.outcomes[0].point;
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
 }
 // #endregion
 
@@ -338,7 +428,7 @@ function NBA_API_CALL()
 // #endregion
 
 // #region ODDS API functions
-async function callODDSAPI()
+async function callOddsAPI()
 {   
     if(typeof config !== "undefined")
     {
@@ -359,18 +449,18 @@ function oddsAPIError(error)
 
 function oddsAPIResponse(response)
 {
+    // create nba odds object
+    var nbaOddsOBJ = new Object();
+    nbaOddsOBJ.games = response;
+
     // add date object to response
-    response.date = today_Date;
+    nbaOddsOBJ.date = today_Date;
 
     // Put the object into storage
-    localStorage.setItem('ODDS_API_OBJ', JSON.stringify(response));
+    localStorage.setItem('ODDS_API_OBJ', JSON.stringify(nbaOddsOBJ));
 
     // check to make sure storage object exists
-    if(localStorage.getItem('ODDS_API_OBJ') !== null)
-    {
-        getNBAGameData();
-    }
-    else
+    if(localStorage.getItem('ODDS_API_OBJ') === null)
     {
         alert("Error: No NBA Odds Object found.")
     }
@@ -381,13 +471,20 @@ function ODDS_API_CALL()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?apiKey=" + config.ODDS_API_KEY + "&regions=us&markets=h2h",
+        "url": "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?apiKey=" + config.ODDS_API_KEY + "&regions=us&markets=h2h,spreads,totals",
         "method": "GET"
     };
 
     return new Promise(function(resolve, reject)
     {
-        $.ajax(settings).done(resolve).fail(reject);
+        $.ajax(settings).done(function(data, textStatus, jqXHR)
+        {
+            // testing ---- get number of requests left
+            var reqLeft = parseInt(jqXHR.getResponseHeader("x-requests-remaining"));
+
+            // call resolve function with data
+            resolve(data);
+        }).fail(reject);
     });
 }
 // #endregion

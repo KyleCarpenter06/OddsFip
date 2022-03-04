@@ -138,7 +138,13 @@ h4
     vertical-align: middle;
     line-height: 50px;
     margin-left: 5px;
-    width: 145px;
+    width: 100px;
+}
+
+.bet-market
+{
+    font-size: 12px;
+    width: 100px;
 }
 
 .bet-box-container
@@ -166,7 +172,7 @@ h4
 
 .team-bet-text-left-space
 {
-    margin-left: 200px;
+    margin-left: 255px;
     display: inline-block;
 }
 
