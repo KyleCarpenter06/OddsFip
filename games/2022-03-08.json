@@ -1,0 +1,47 @@
+{
+    "date":[{"date":"2022-03-07"}],
+    "games" : [
+        {
+            "home_team":"Hornets",
+            "start-time":"2022-03-08T22:00:00Z",
+            "spreadFav":"BKN",
+            "spreadNum":"3",
+            "overunder": "239"
+        },
+        {
+            "home_team":"Pacers",
+            "start-time":"2022-03-08T22:00:00Z",
+            "spreadFav":"CLE",
+            "spreadNum":"3.5",
+            "overunder": "223.5"
+        },
+        {
+            "home_team":"Magic",
+            "start-time":"2022-03-08T22:00:00Z",
+            "spreadFav":"PHX",
+            "spreadNum":"6",
+            "overunder": "221.5"
+        },
+        {
+            "home_team":"Grizzles",
+            "start-time":"2022-03-08T22:00:00Z",
+            "spreadFav":"MEM",
+            "spreadNum":"5.5",
+            "overunder": "231.5"
+        },
+        {
+            "home_team":"Thunder",
+            "start-time":"2022-03-08T22:00:00Z",
+            "spreadFav":"MIL",
+            "spreadNum":"13",
+            "overunder": "230"
+        },
+        {
+            "home_team":"Warriors",
+            "start-time":"2022-03-08T22:00:00Z",
+            "spreadFav":"GSW",
+            "spreadNum":"6.5",
+            "overunder": "222.5"
+        }
+    ]
+}
