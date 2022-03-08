@@ -188,6 +188,11 @@ h4
     font-weight: bold;
 }
 
+.bet-text-final
+{
+    font-weight: bold;
+}
+
 .bet-tooltip
 {
     visibility: hidden;
@@ -239,7 +244,7 @@ h4
     width: 100px;
     display: inline-block;
     text-align: center;
-    font-size: 15px;
+    font-size: 13px;
 }
 /* #endregion */
 
