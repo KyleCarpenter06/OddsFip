@@ -1,0 +1,61 @@
+{
+    "date":[{"date":"2022-03-07"}],
+    "games" : [
+        {
+            "home_team":"Celtics",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"BOS",
+            "spreadNum":"6",
+            "overunder": "224.5"
+        },
+        {
+            "home_team":"Bucks",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"MIL",
+            "spreadNum":"8.5",
+            "overunder": "232"
+        },
+        {
+            "home_team":"Cavaliers",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"CLE",
+            "spreadNum":"4",
+            "overunder": "211.5"
+        },
+        {
+            "home_team":"Wizards",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"WAS",
+            "spreadNum":"2.5",
+            "overunder": "226"
+        },
+        {
+            "home_team":"Rockets",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"MEM",
+            "spreadNum":"10.5",
+            "overunder": "237.5"
+        },
+        {
+            "home_team":"Thunder",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"UTA",
+            "spreadNum":"13.5",
+            "overunder": "220.5"
+        },
+        {
+            "home_team":"Knicks",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"MEM",
+            "spreadNum":"5",
+            "overunder": "220.5"
+        },
+        {
+            "home_team":"Nuggets",
+            "start-time":"2022-03-06T22:00:00Z",
+            "spreadFav":"DEN",
+            "spreadNum":"3.5",
+            "overunder": "228.5"
+        }
+    ]
+}
