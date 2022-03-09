@@ -1,3 +1,5 @@
+import { testJSON } from "./firebase.js";
+
 // #region global variables
 var today_Date = "";
 var nba_Games_Array = [];
@@ -99,6 +101,7 @@ $(function()
     getTodaysDate();
     checkNBAOdds();
     checkNBAData();
+    getFirebaseData();
 })
 // #endregion
 
@@ -161,6 +164,12 @@ function checkNBAOdds()
     {
         callOddsAPI();
     }
+}
+
+function getFirebaseData()
+{
+    
+    var test = testJSON;
 }
 // #endregion
 

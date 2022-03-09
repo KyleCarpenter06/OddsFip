@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js'
-import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js';
+import { getDatabase, ref, get, set, query, onValue } from 'https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js';
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -18,6 +18,16 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const testRef = ref(db);
-onValue(starCountRef, (snapshot) => {
-  console.log(snapshot.val());
-});
+const userSnapshot = await get(query(testRef));
+
+import data from '../games/nba_stats_2122.json';
+//const { data2122 } = data;
+//const data = require('../games/nba_stats_2122.json');
+
+//set(testRef, {
+  //test: "test1"
+//})
+
+var testJSON = userSnapshot.val();
+
+export { testJSON }
