@@ -20,7 +20,7 @@ const db = getDatabase(app);
 const testRef = ref(db);
 const userSnapshot = await get(query(testRef));
 
-import data from '../games/nba_stats_2122.json';
+//import data from '../games/nba_stats_2122.json';
 //const { data2122 } = data;
 //const data = require('../games/nba_stats_2122.json');
 

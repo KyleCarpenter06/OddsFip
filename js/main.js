@@ -4,7 +4,7 @@ import { testJSON } from "./firebase.js";
 var today_Date = "";
 var nba_Games_Array = [];
 var nba_Odds_Array = [];
-var keywords = ["L1", "L3", "L5", "L10", "SN", "HA", "Wm", "Ws", "F"];
+var keywords = ["l1", "l3", "l5", "l10", "sn", "ha", "wm", "ws", "final"];
 
 var noColor = "#ffffff";
 var white = "#ffffff";
@@ -42,35 +42,65 @@ let NBA_Game = class
     static dkSpreadNum = "N/A";
     static dkOverUnder = "N/A";
 
-    static spL1;
-    static spL3;
-    static spL5;
-    static spL10;
-    static spSN;
-    static spHA;
-    static spWm;
-    static spWs;
-    static spF;
+    static spl1_full;
+    static spl3_full;
+    static spl5_full;
+    static spl10_full;
+    static spsn_full;
+    static spha_full;
+    static spwm_full;
+    static spws_full;
 
-    static fvL1;
-    static fvL3;
-    static fvL5;
-    static fvL10;
-    static fvSN;
-    static fvHA;
-    static fvWm;
-    static fvWs;
-    static fvF;
+    static spl1_adj;
+    static spl3_adj;
+    static spl5_adj;
+    static spl10_adj;
+    static spsn_adj;
+    static spha_adj;
+    static spwm_adj;
+    static spws_adj;
+
+    static spfinal;
+
+    static fvl1_full;
+    static fvl3_full;
+    static fvl5_full;
+    static fvl10_full;
+    static fvsn_full;
+    static fvha_full;
+    static fvwm_full;
+    static fvws_full;
+
+    static fvl1_adj;
+    static fvl3_adj;
+    static fvl5_adj;
+    static fvl10_adj;
+    static fvsn_adj;
+    static fvha_adj;
+    static fvwm_adj;
+    static fvws_adj;
+
+    static fvfinal;
     
-    static ouL1;
-    static ouL3;
-    static ouL5;
-    static ouL10;
-    static ouSN;
-    static ouHA;
-    static ouWm;
-    static ouWs;
-    static ouF;
+    static oul1_full;
+    static oul3_full;
+    static oul5_full;
+    static oul10_full;
+    static ousn_full;
+    static ouha_full;
+    static ouwm_full;
+    static ouws_full;
+
+    static oul1_adj;
+    static oul3_adj;
+    static oul5_adj;
+    static oul10_adj;
+    static ousn_adj;
+    static ouha_adj;
+    static ouwm_adj;
+    static ouws_adj;
+
+    static oufinal;
 };
 
 let NBA_Team = class
@@ -79,16 +109,27 @@ let NBA_Team = class
     static teamFullName;
     static abbv;
     static id;
+    static location;
 
-    static last1; // last game
-    static last3; // last 3 game average
-    static last5; // last 5 game average
-    static last10; // last 10 game average
-    static season; // full season average
-    static home; // home game average
-    static away; // away game average
-    static weightedM; // weighted momentum
-    static weightedS; // weighted season
+    static last1_full; // last game
+    static last3_full; // last 3 game average
+    static last5_full; // last 5 game average
+    static last10_full; // last 10 game average
+    static season_full; // full season average
+    static home_full; // home game average
+    static away_full; // away game average
+    static weightedM_full; // weighted momentum
+    static weightedS_full; // weighted season
+
+    static last1_adj; // last game
+    static last3_adj; // last 3 game average
+    static last5_adj; // last 5 game average
+    static last1_adj; // last 10 game average
+    static season_adj; // full season average
+    static home_adj; // home game average
+    static away_adj; // away game average
+    static weightedM_adj; // weighted momentum
+    static weightedS_adj; // weighted season
 
     static final; // final outcome based on average of weights
 }
@@ -246,9 +287,13 @@ function getNBAGameData()
                 awayTeam.id = game.teams.visitors.id;
                 homeTeam.id = game.teams.home.id;
 
+                // set locations
+                awayTeam.location = "away";
+                homeTeam.location = "home";
+
                 // compile nba stats
-                getNBATeamData(awayTeam, "away");
-                getNBATeamData(homeTeam, "home");
+                getNBATeamData(awayTeam, homeTeam, game);
+                getNBATeamData(homeTeam, awayTeam, game);
 
                 // compile draftkings odds
                 getNBAOddsData(nbaGame, $currentGame);
@@ -260,8 +305,11 @@ function getNBAGameData()
                 // compile calculated odds
                 keywords.forEach(function(keyword)
                 {
-                    fillBetBox_Spread($currentGame, nbaGame, keyword)
-                    fillBetBox_OverUnder($currentGame, nbaGame, keyword)
+                    fillBetBox_Spread($currentGame, nbaGame, keyword, "full");
+                    fillBetBox_OverUnder($currentGame, nbaGame, keyword, "full");
+
+                    fillBetBox_Spread($currentGame, nbaGame, keyword, "adj");
+                    fillBetBox_OverUnder($currentGame, nbaGame, keyword, "adj");
                 });
 
                 // add game to nba games array
@@ -274,41 +322,47 @@ function getNBAGameData()
     });
 }
 
-function fillBetBox_Spread(html, nbaGame, keyword)
+function fillBetBox_Spread(html, nbaGame, keyword, type)
 {
-    var spBox = html.find('.sp' + keyword).eq(0);
-    var spText = html.find('.spT' + keyword).eq(0);
-    var spTooltip = html.find('.sp' + keyword + "Tip").eq(0);
-    var spPick = getNBASpreadPick(nbaGame["fv" + keyword], nbaGame["sp" + keyword], nbaGame);
+    var adjWord = keyword === "final" ? keyword : keyword + "-" + type;
+    var adjProp = keyword === "final" ? keyword : keyword + "_" + type;
+
+    var spBox = html.find('.sp-' + adjWord).eq(0);
+    var spText = html.find('.sp-' + adjWord + "-text").eq(0);
+    var spTooltip = html.find('.sp-' + adjWord + "-tip").eq(0);
+    var spPick = getNBASpreadPick(nbaGame["fv" + adjProp], nbaGame["sp" + adjProp], nbaGame);
 
     if(spPick !== undefined)
     {
         spBox.css("background-color", spPick.backcolor);
         spBox.css("color", spPick.forecolor);
         spBox.css("border-color", spPick.bordercolor);
-        spText.text(keyword !== "F" ? spPick.pick : spPick.pickfull);
-        spTooltip.text(nbaGame["fv" + keyword] + " " + nbaGame["sp" + keyword]);
+        spText.text(adjWord !== "final" ? spPick.pick : spPick.pickfull);
+        spTooltip.text(nbaGame["fv" + adjProp] + " " + nbaGame["sp" + adjProp]);
     }
 }
 
-function fillBetBox_OverUnder(html, nbaGame, keyword)
+function fillBetBox_OverUnder(html, nbaGame, keyword, type)
 {
-    var ouBox = html.find('.ou' + keyword).eq(0);
-    var ouText = html.find('.ouT' + keyword).eq(0);
-    var ouTooltip = html.find('.ou' + keyword + "Tip").eq(0);
-    var ouPick = getNBAOverUnderPick(nbaGame["ou" + keyword], nbaGame);
+    var adjWord = keyword === "final" ? keyword : keyword + "-" + type;
+    var adjProp = keyword === "final" ? keyword : keyword + "_" + type;
+
+    var ouBox = html.find('.ou-' + adjWord).eq(0);
+    var ouText = html.find('.ou-' + adjWord + "-text").eq(0);
+    var ouTooltip = html.find('.ou-' + adjWord + "-tip").eq(0);
+    var ouPick = getNBAOverUnderPick(nbaGame["ou" + adjProp], nbaGame);
 
     if(ouPick !== undefined)
     {
         ouBox.css("background-color", ouPick.backcolor);
         ouBox.css("color", ouPick.forecolor);
         ouBox.css("border-color", ouPick.bordercolor);
-        ouText.text(keyword !== "F" ? ouPick.pick : ouPick.pickfull);
-        ouTooltip.text(nbaGame["ou" + keyword]);
+        ouText.text(adjWord !== "final" ? ouPick.pick : ouPick.pickfull);
+        ouTooltip.text(nbaGame["ou" + adjProp]);
     }
 }
 
-function getNBATeamData(nbaTeam, nbaLocation)
+function getNBATeamData(nbaTeam, oppTeam, nbaGame)
 {
     // Retrieve the object from storage
     var retrievedObject = localStorage.getItem('NBA_API_OBJ');
@@ -316,7 +370,8 @@ function getNBATeamData(nbaTeam, nbaLocation)
     nbaOBJ = JSON.parse(retrievedObject);
 
     // create team games array
-    var teamGames = [];
+    var fullGames = [];
+    var adjGames = [];
 
     // for each game, loop to get data
     nbaOBJ.response.forEach(function(game)
@@ -327,94 +382,181 @@ function getNBATeamData(nbaTeam, nbaLocation)
             // if only games that were finished
             if(game.date.end !== null)
             {
-                teamGames.push(game);
+                fullGames.push(game);
             }
         }
     });
 
     // sort games by date
-    teamGames.sort(function(a,b)
+    fullGames.sort(function(a,b)
     {
         return new Date(b.date.start) - new Date(a.date.start);
-    })
+    });
+
+    // get opponent record
+    var oppOBJ = oppTeam.location == "home" ? nbaGame.scores.home : nbaGame.scores.visitors;
+    var oppNum = oppOBJ.win / (oppOBJ.win + oppOBJ.loss);
+
+    // if opp winning record then collect winning teams points, else vice versa
+    if(oppNum >= 0.5)
+    {
+        // iterate over each game
+        fullGames.forEach(function(game)
+        {
+            // get opponent record at time of game
+            var recOBJ = game.teams.home.id == nbaTeam.id ? game.scores.visitors : game.scores.home;
+            var recNum = recOBJ.win / (recOBJ.win + recOBJ.loss);
+
+            // if record is greater than 0.5, add to array
+            if(recNum >= 0.5)
+            {
+                adjGames.push(game);
+            }
+        });
+    }
+    else
+    {
+        // iterate over each game
+        fullGames.forEach(function(game)
+        {
+            // get opponent record at time of game
+            var recOBJ = game.teams.home.id == nbaTeam.id ? game.scores.visitors : game.scores.home;
+            var recNum = recOBJ.win / (recOBJ.win + recOBJ.loss);
+
+            // if record is less than 0.5, add to array
+            if(recNum < 0.5)
+            {
+                adjGames.push(game);
+            }
+        });
+    }
 
     // --- compile and store stats
     // last game
-    nbaTeam.last1 = getNBAScore(teamGames[0], nbaTeam);
+    nbaTeam.last1_full = getNBAScore(fullGames[0], nbaTeam);
+    nbaTeam.last1_adj = getNBAScore(adjGames[0], nbaTeam);
     
     // last 3 games
-    var last3 = 0;
+    var last3_Full = 0;
+    var last3_Adj = 0;
     for(let i = 0; i < 3; i++)
     {
-        last3 += getNBAScore(teamGames[i], nbaTeam);
+        last3_Full += getNBAScore(fullGames[i], nbaTeam);
+        last3_Adj += getNBAScore(adjGames[i], nbaTeam);
     }
-    nbaTeam.last3 = Math.round(last3 / 3);
+    nbaTeam.last3_full = Math.round(last3_Full / 3);
+    nbaTeam.last3_adj = Math.round(last3_Adj / 3);
     
     // last 5 games
-    var last5 = 0;
+    var last5_Full = 0;
+    var last5_Adj = 0;
     for(let i = 0; i < 5; i++)
     {
-        last5 += getNBAScore(teamGames[i], nbaTeam);
+        last5_Full += getNBAScore(fullGames[i], nbaTeam);
+        last5_Adj += getNBAScore(adjGames[i], nbaTeam);
     }
-    nbaTeam.last5 = Math.round(last5 / 5);
+    nbaTeam.last5_full = Math.round(last5_Full / 5);
+    nbaTeam.last5_adj = Math.round(last5_Adj / 5);
 
     // last 10 games
-    var last10 = 0;
+    var last10_Full = 0;
+    var last10_Adj = 0;
     for(let i = 0; i < 10; i++)
     {
-        last10 += getNBAScore(teamGames[i], nbaTeam);
+        last10_Full += getNBAScore(fullGames[i], nbaTeam);
+        last10_Adj += getNBAScore(adjGames[i], nbaTeam);
     }
-    nbaTeam.last10 = Math.round(last10 / 10);
+    nbaTeam.last10_full = Math.round(last10_Full / 10);
+    nbaTeam.last10_adj = Math.round(last10_Adj / 10);
 
     // home games
-    var home = 0;
-    var counter = 0;
-    teamGames.forEach(function(game)
+    var home_Full = 0;
+    var home_Adj = 0;
+    var counter_Full = 0;
+    var counter_Adj = 0;
+    fullGames.forEach(function(game)
     {
         if(game.teams.home.id == nbaTeam.id)
         {
-            home += getNBAScore(game, nbaTeam);
-            counter++;
+            home_Full += getNBAScore(game, nbaTeam);
+            counter_Full++;
         }
     });
-    nbaTeam.home = Math.round(home / counter);
+    adjGames.forEach(function(game)
+    {
+        if(game.teams.home.id == nbaTeam.id)
+        {
+            home_Adj += getNBAScore(game, nbaTeam);
+            counter_Adj++;
+        }
+    });
+    nbaTeam.home_full = Math.round(home_Full / counter_Full);
+    nbaTeam.home_adj = Math.round(home_Adj / counter_Adj);
 
     // away games
-    var away = 0;
-    var counter = 0;
-    teamGames.forEach(function(game)
+    var away_Full = 0;
+    var away_Adj = 0;
+    counter_Full = 0;
+    counter_Adj = 0;
+    fullGames.forEach(function(game)
     {
         if(game.teams.visitors.id == nbaTeam.id)
         {
-            away += getNBAScore(game, nbaTeam);
-            counter++;
+            away_Full += getNBAScore(game, nbaTeam);
+            counter_Full++;
         }
     });
-    nbaTeam.away = Math.round(away / counter);
+    adjGames.forEach(function(game)
+    {
+        if(game.teams.visitors.id == nbaTeam.id)
+        {
+            away_Adj += getNBAScore(game, nbaTeam);
+            counter_Adj++;
+        }
+    });
+    nbaTeam.away_full = Math.round(away_Full / counter_Full);
+    nbaTeam.away_adj = Math.round(away_Adj / counter_Adj);
 
     // full season
-    var season = 0;
-    var counter = 0;
-    teamGames.forEach(function(game)
+    var season_Full = 0;
+    var season_Adj = 0;
+    counter_Full = 0;
+    counter_Adj = 0;
+    fullGames.forEach(function(game)
     {
-        season += getNBAScore(game, nbaTeam);
-        counter++;
+        season_Full += getNBAScore(game, nbaTeam);
+        counter_Full++;
     });
-    nbaTeam.season = Math.round(season / counter);
+    adjGames.forEach(function(game)
+    {
+        season_Adj += getNBAScore(game, nbaTeam);
+        counter_Adj++;
+    });
+    nbaTeam.season_full = Math.round(season_Full / counter_Full);
+    nbaTeam.season_adj = Math.round(season_Adj / counter_Adj);
+
+    // get team location
+    var location_full = nbaTeam.location == "home" ? nbaTeam.home_full : nbaTeam.away_full;
+    var location_adj = nbaTeam.location == "home" ? nbaTeam.home_adj : nbaTeam.away_adj;
 
     // weighted momentum score
-    // current weights - season 5%, home/away 15%, last 10 10%, last 5 %15, last 5 20%, last 1 35%
-    var location = nbaLocation == "home" ? nbaTeam.home : nbaTeam.away;
-    var weightedM = (nbaTeam.season * .05) + (location * .15) + (nbaTeam.last10 * .1) + (nbaTeam.last5 * .15) + (nbaTeam.last3 * .2) + (nbaTeam.last1 * .35);
-    nbaTeam.weightedM =  Math.round(weightedM);
+    // current weights - season 5%, home/away 15%, last 10 10%, last 5 %15, last 5 20%, last 1 35% 
+    var weightedM_full = (nbaTeam.season_full * .05) + (location_full * .15) + (nbaTeam.last10_full * .1) + (nbaTeam.last5_full * .15) + (nbaTeam.last3_full * .2) + (nbaTeam.last1_full * .35);
+    var weightedM_adj = (nbaTeam.season_adj * .05) + (location_adj * .15) + (nbaTeam.last10_adj * .1) + (nbaTeam.last5_adj * .15) + (nbaTeam.last3_adj * .2) + (nbaTeam.last1_adj * .35);
+    nbaTeam.weightedM_full = Math.round(weightedM_full);
+    nbaTeam.weightedM_adj = Math.round(weightedM_adj);
 
     // weighted season score
     // current weights - season 35%, home/away 15%, last 10 20%, last 5 %15, last 5 10%, last 1 5%
-    var weightedS = (nbaTeam.season * .35) + (location * .15) + (nbaTeam.last10 * .2) + (nbaTeam.last5 * .15) + (nbaTeam.last3 * .1) + (nbaTeam.last1 * .05);
-    nbaTeam.weightedS = Math.round(weightedS);
+    var weightedS_full = (nbaTeam.season_full * .35) + (location_full * .15) + (nbaTeam.last10_full * .2) + (nbaTeam.last5_full * .15) + (nbaTeam.last3_full * .1) + (nbaTeam.last1_full * .05);
+    var weightedS_adj = (nbaTeam.season_adj * .35) + (location_adj * .15) + (nbaTeam.last10_adj * .2) + (nbaTeam.last5_adj * .15) + (nbaTeam.last3_adj * .1) + (nbaTeam.last1_adj * .05);
+    nbaTeam.weightedS_full = Math.round(weightedS_full);
+    nbaTeam.weightedS_adj = Math.round(weightedS_adj);
 
     // final calculated score (average of two above weights)
-    var final = (weightedM + weightedS) / 2;
+    var final_full = (weightedM_full + weightedS_full) / 2;
+    var final_adj = (weightedM_adj + weightedS_adj) / 2;
+    var final = (final_full * .3) + (final_adj * .7);
     nbaTeam.final = Math.round(final);
 }
 
@@ -535,43 +677,75 @@ function getNBAOddsData(nbaGame)
 
     // get game outcomes based on nba team stats
     // spreads
-    nbaGame.fvL1 = nbaGame.homeTeam.last1 > nbaGame.awayTeam.last1 ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spL1 = Math.abs(nbaGame.homeTeam.last1 - nbaGame.awayTeam.last1);
+    nbaGame.fvl1_full = nbaGame.homeTeam.last1_full > nbaGame.awayTeam.last1_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl1_full = Math.abs(nbaGame.homeTeam.last1_full - nbaGame.awayTeam.last1_full);
+    nbaGame.fvl1_adj = nbaGame.homeTeam.last1_adj > nbaGame.awayTeam.last1_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl1_adj = Math.abs(nbaGame.homeTeam.last1_adj - nbaGame.awayTeam.last1_adj);
 
-    nbaGame.fvL3 = nbaGame.homeTeam.last3 > nbaGame.awayTeam.last3 ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spL3 = Math.abs(nbaGame.homeTeam.last3 - nbaGame.awayTeam.last3);
+    nbaGame.fvl3_full = nbaGame.homeTeam.last3_full > nbaGame.awayTeam.last3_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl3_full = Math.abs(nbaGame.homeTeam.last3_full - nbaGame.awayTeam.last3_full);
+    nbaGame.fvl3_adj = nbaGame.homeTeam.last3_adj > nbaGame.awayTeam.last3_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl3_adj = Math.abs(nbaGame.homeTeam.last3_adj - nbaGame.awayTeam.last3_adj);
 
-    nbaGame.fvL5 = nbaGame.homeTeam.last5 > nbaGame.awayTeam.last5 ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spL5 = Math.abs(nbaGame.homeTeam.last5 - nbaGame.awayTeam.last5);
+    nbaGame.fvl5_full = nbaGame.homeTeam.last5_full > nbaGame.awayTeam.last5_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl5_full = Math.abs(nbaGame.homeTeam.last5_full - nbaGame.awayTeam.last5_full);
+    nbaGame.fvl5_adj = nbaGame.homeTeam.last5_adj > nbaGame.awayTeam.last5_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl5_adj = Math.abs(nbaGame.homeTeam.last5_adj - nbaGame.awayTeam.last5_adj);
 
-    nbaGame.fvL10 = nbaGame.homeTeam.last10 > nbaGame.awayTeam.last10 ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spL10 = Math.abs(nbaGame.homeTeam.last10 - nbaGame.awayTeam.last10);
+    nbaGame.fvl10_full = nbaGame.homeTeam.last10_full > nbaGame.awayTeam.last10_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl10_full = Math.abs(nbaGame.homeTeam.last10_full - nbaGame.awayTeam.last10_full);
+    nbaGame.fvl10_adj = nbaGame.homeTeam.last10_adj > nbaGame.awayTeam.last10_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spl10_adj = Math.abs(nbaGame.homeTeam.last10_adj - nbaGame.awayTeam.last10_adj);
 
-    nbaGame.fvSN = nbaGame.homeTeam.season > nbaGame.awayTeam.season ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spSN = Math.abs(nbaGame.homeTeam.season - nbaGame.awayTeam.season);
+    nbaGame.fvsn_full = nbaGame.homeTeam.season_full > nbaGame.awayTeam.season_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spsn_full = Math.abs(nbaGame.homeTeam.season_full - nbaGame.awayTeam.season_full);
+    nbaGame.fvsn_adj = nbaGame.homeTeam.season_adj > nbaGame.awayTeam.season_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spsn_adj = Math.abs(nbaGame.homeTeam.season_adj - nbaGame.awayTeam.season_adj);
 
-    nbaGame.fvHA = nbaGame.homeTeam.home > nbaGame.awayTeam.away ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spHA = Math.abs(nbaGame.homeTeam.home - nbaGame.awayTeam.away);
-    
-    nbaGame.fvWm = nbaGame.homeTeam.weightedM > nbaGame.awayTeam.weightedM ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spWm = Math.abs(nbaGame.homeTeam.weightedM - nbaGame.awayTeam.weightedM);
+    nbaGame.fvha_full = nbaGame.homeTeam.home_full > nbaGame.awayTeam.away_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spha_full = Math.abs(nbaGame.homeTeam.home_full - nbaGame.awayTeam.away_full);
+    nbaGame.fvha_adj = nbaGame.homeTeam.home_adj > nbaGame.awayTeam.away_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spha_adj = Math.abs(nbaGame.homeTeam.home_adj - nbaGame.awayTeam.away_adj);
 
-    nbaGame.fvWs = nbaGame.homeTeam.weightedS > nbaGame.awayTeam.weightedS ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spWs = Math.abs(nbaGame.homeTeam.weightedS - nbaGame.awayTeam.weightedS);
+    nbaGame.fvwm_full = nbaGame.homeTeam.weightedM_full > nbaGame.awayTeam.weightedM_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spwm_full = Math.abs(nbaGame.homeTeam.weightedM_full - nbaGame.awayTeam.weightedM_full);
+    nbaGame.fvwm_adj = nbaGame.homeTeam.weightedM_adj > nbaGame.awayTeam.weightedM_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spwm_adj = Math.abs(nbaGame.homeTeam.weightedM_adj - nbaGame.awayTeam.weightedM_adj);
 
-    nbaGame.fvF = nbaGame.homeTeam.final > nbaGame.awayTeam.final ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
-    nbaGame.spF = Math.abs(nbaGame.homeTeam.final - nbaGame.awayTeam.final);
+    nbaGame.fvws_full = nbaGame.homeTeam.weightedS_full > nbaGame.awayTeam.weightedS_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spws_full = Math.abs(nbaGame.homeTeam.weightedS_full - nbaGame.awayTeam.weightedS_full);
+    nbaGame.fvws_adj = nbaGame.homeTeam.weightedS_adj > nbaGame.awayTeam.weightedS_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spws_adj = Math.abs(nbaGame.homeTeam.weightedS_adj - nbaGame.awayTeam.weightedS_adj);
+
+    nbaGame.fvfinal = nbaGame.homeTeam.final > nbaGame.awayTeam.final ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.spfinal = Math.abs(nbaGame.homeTeam.final - nbaGame.awayTeam.final);
 
     // overs/unders
-    nbaGame.ouL1 = nbaGame.homeTeam.last1 + nbaGame.awayTeam.last1;
-    nbaGame.ouL3 = nbaGame.homeTeam.last3 + nbaGame.awayTeam.last3;
-    nbaGame.ouL5 = nbaGame.homeTeam.last5 + nbaGame.awayTeam.last5;
-    nbaGame.ouL10 = nbaGame.homeTeam.last10 + nbaGame.awayTeam.last10;
-    nbaGame.ouSN = nbaGame.homeTeam.season + nbaGame.awayTeam.season;
-    nbaGame.ouHA = nbaGame.homeTeam.home + nbaGame.awayTeam.away;
-    nbaGame.ouWm = nbaGame.homeTeam.weightedM + nbaGame.awayTeam.weightedM;
-    nbaGame.ouWs = nbaGame.homeTeam.weightedS + nbaGame.awayTeam.weightedS;
-    nbaGame.ouF = nbaGame.homeTeam.final + nbaGame.awayTeam.final;
+    nbaGame.oul1_full = nbaGame.homeTeam.last1_full + nbaGame.awayTeam.last1_full;
+    nbaGame.oul1_adj = nbaGame.homeTeam.last1_adj + nbaGame.awayTeam.last1_adj;
+
+    nbaGame.oul3_full = nbaGame.homeTeam.last3_full + nbaGame.awayTeam.last3_full;
+    nbaGame.oul3_adj = nbaGame.homeTeam.last3_adj + nbaGame.awayTeam.last3_adj;
+
+    nbaGame.oul5_full = nbaGame.homeTeam.last5_full + nbaGame.awayTeam.last5_full;
+    nbaGame.oul5_adj = nbaGame.homeTeam.last5_adj + nbaGame.awayTeam.last5_adj;
+
+    nbaGame.oul10_full = nbaGame.homeTeam.last10_full + nbaGame.awayTeam.last10_full;
+    nbaGame.oul10_adj = nbaGame.homeTeam.last10_adj + nbaGame.awayTeam.last10_adj;
+
+    nbaGame.ousn_full = nbaGame.homeTeam.season_full + nbaGame.awayTeam.season_full;
+    nbaGame.ousn_adj = nbaGame.homeTeam.season_adj + nbaGame.awayTeam.season_adj;
+
+    nbaGame.ouha_full = nbaGame.homeTeam.home_full + nbaGame.awayTeam.away_full;
+    nbaGame.ouha_adj = nbaGame.homeTeam.home_adj + nbaGame.awayTeam.away_adj;
+
+    nbaGame.ouwm_full = nbaGame.homeTeam.weightedM_full + nbaGame.awayTeam.weightedM_full;
+    nbaGame.ouwm_adj = nbaGame.homeTeam.weightedM_adj + nbaGame.awayTeam.weightedM_adj;
+
+    nbaGame.ouws_full = nbaGame.homeTeam.weightedS_full + nbaGame.awayTeam.weightedS_full;
+    nbaGame.ouws_adj = nbaGame.homeTeam.weightedS_adj + nbaGame.awayTeam.weightedS_adj;
+
+    nbaGame.oufinal = nbaGame.homeTeam.final + nbaGame.awayTeam.final;
 }
 
 function getNBASpreadPick(calcSpreadFav, calcSpreadNum, nbaGame)

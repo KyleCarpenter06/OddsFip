@@ -157,6 +157,11 @@ h4
     width: 100px;
 }
 
+.bet-box-container .bet-box:nth-child(1)
+{
+    margin-bottom: 2px;
+}
+
 .bet-box
 {
     width: 15px;
@@ -171,7 +176,8 @@ h4
 .bet-box-final
 {
     width: 100%;
-    height: 25px;
+    height: 32px;
+    line-height: 30px;
     border: 1px solid #bbb;
     border-radius: 2px;
     box-sizing: border-box;
@@ -225,8 +231,18 @@ h4
 
 .team-bet-text-left-space
 {
-    margin-left: 255px;
+    margin-left: 275px;
     display: inline-block;
+}
+
+.bet-left-container
+{
+    width: 20px;
+}
+
+.bet-left-text
+{
+    font-size: 12px;
 }
 
 .bet-center-text
