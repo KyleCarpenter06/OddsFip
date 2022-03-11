@@ -1,4 +1,4 @@
-import { testJSON } from "./firebase.js";
+import { fullJSON } from "./firebase.js";
 
 // #region global variables
 var today_Date = "";
