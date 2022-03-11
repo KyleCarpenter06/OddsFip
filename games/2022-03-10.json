@@ -1,0 +1,19 @@
+{
+    "date":[{"date":"2022-03-09"}],
+    "games" : [
+        {
+            "home_team":"76ers",
+            "start-time":"2022-03-10T22:00:00Z",
+            "spreadFav":"PHI",
+            "spreadNum":"4.5",
+            "overunder": "235.5"
+        },
+        {
+            "home_team":"Nuggets",
+            "start-time":"2022-03-09T22:00:00Z",
+            "spreadFav":"GSW",
+            "spreadNum":"2",
+            "overunder": "228.5"
+        }
+    ]
+}

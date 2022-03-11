@@ -5,7 +5,7 @@ import { getDatabase, ref, get, set, query, onValue } from 'https://www.gstatic.
 const firebaseConfig = {
     apiKey: "AIzaSyAyJ52zXtuoMBziMgWUL6NLb8JAYWjQIas",
     authDomain: "oddsflip.firebaseapp.com",
-    databaseURL: "https://oddsflip-default-rtdb.firebaseio.com",
+    databaseURL: "https://oddsflip-nbadata-20-21.firebaseio.com/",
     projectId: "oddsflip",
     storageBucket: "oddsflip.appspot.com",
     messagingSenderId: "120188926499",
@@ -28,6 +28,6 @@ const userSnapshot = await get(query(testRef));
   //test: "test1"
 //})
 
-var testJSON = userSnapshot.val();
+var fullJSON = userSnapshot.val();
 
-export { testJSON }
+export { fullJSON }
