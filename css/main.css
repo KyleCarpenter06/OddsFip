@@ -265,7 +265,36 @@ h4
 /* #endregion */
 
 /* #region SEASON CLASSES */
+#season-table
+{
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+#season-table td
+{
+    border: 1px solid black;
+    padding-left: 2px;
+}
 
+.season-team-left
+{
+    width: 40px;
+    display: inline-block;
+    text-align:right;
+    margin-right: 8px;
+}
+
+.season-team-right
+{
+    width: 40px;
+    display: inline-block;
+}
+
+.season-team-at
+{
+    width: 20px;
+    display: inline-block;
+}
 /* #endregion */
 
 /* #region OTHER CLASSES */
