@@ -268,11 +268,43 @@ h4
 #season-table
 {
     border: 1px solid black;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 3px 1px #ccc;
+    overflow: hidden;
 }
-#season-table td
+#season-table thead
 {
-    border: 1px solid black;
+    background-color: rgb(218, 218, 218);
+}
+#season-table thead td:not(:first-child)
+{
+    width: 50px;
+}
+#season-table thead td:not(:last-child)
+{
+    padding-left: 2px;
+    border-right:1px solid black;
+    font-weight: bold;
+    text-align: center;
+}
+#season-table thead td:last-child
+{
+    padding-left: 2px;
+    font-weight: bold;
+    text-align: center;
+}
+#season-table tbody td:not(:last-child)
+{
+    border-top: 1px solid black;
+    border-right:1px solid black;
+    padding-left: 2px;
+}
+#season-table tbody td:last-child
+{
+    border-top: 1px solid black;
     padding-left: 2px;
 }
 

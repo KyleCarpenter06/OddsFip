@@ -224,11 +224,27 @@ function getNBASeasonGames()
     // get season table from DOM
     var seasonTable = document.getElementById("season-table");
 
-    // create header
+    // create header row
+    var seasonHead = seasonTable.createTHead();
+    var seasonHRow = seasonHead.insertRow(0);
+    seasonHRow.insertCell(0).innerHTML = "Game";
+    seasonHRow.insertCell(1).innerHTML = "L1_F";
+    seasonHRow.insertCell(2).innerHTML = "L3_F";
+    seasonHRow.insertCell(3).innerHTML = "L5_F";
+    seasonHRow.insertCell(4).innerHTML = "L10_F";
+    seasonHRow.insertCell(5).innerHTML = "SN_F";
+    seasonHRow.insertCell(6).innerHTML = "HA_F";
+    seasonHRow.insertCell(7).innerHTML = "Wm_F";
+    seasonHRow.insertCell(8).innerHTML = "Ws_F";
+
+    // get reverse of full json array
+    var fullGames = fullJSON.reverse();
+
+    // create body
     var seasonBody = seasonTable.createTBody();
 
     // iterate over each element
-    for(let i = 0; i < fullJSON.length; i += 2)
+    for(let i = 0; i < fullGames.length; i += 2)
     {
         // create new NBA Game Object
         var homeTeam = new NBA_Team();
@@ -236,8 +252,8 @@ function getNBASeasonGames()
         var nbaGame = new NBA_Game(homeTeam, awayTeam);
 
         // get nba abbvs to match with other data set
-        homeTeam.abbv = getTeamAbbv(fullJSON[i].Team);
-        awayTeam.abbv = getTeamAbbv(fullJSON[i + 1].Team);
+        homeTeam.abbv = getTeamAbbv(fullGames[i].Team);
+        awayTeam.abbv = getTeamAbbv(fullGames[i + 1].Team);
 
         // create div with team elements
         var homeSpan = document.createElement("span");
@@ -255,9 +271,10 @@ function getNBASeasonGames()
 
         // insert row and cell
         var row = seasonBody.insertRow(0);
-        var cell = row.insertCell(0);
-        cell.innerHTML = awaySpan.outerHTML + atSpan.outerHTML + homeSpan.outerHTML;
+        row.insertCell(0).innerHTML = awaySpan.outerHTML + atSpan.outerHTML + homeSpan.outerHTML;
+        row.insertCell(1).innerHTML = "89.9%";
     }
+    
     fullJSON.forEach(function() {
         
     });
