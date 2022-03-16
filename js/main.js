@@ -5,6 +5,7 @@ var today_Date = "";
 var nba_Games_Array = [];
 var nba_Odds_Array = [];
 var keywords = ["l1", "l3", "l5", "l10", "sn", "ha", "wm", "ws", "final"];
+var odds_api_key = config.ODDS_API_KEY;
 
 var noColor = "#ffffff";
 var white = "#ffffff";
@@ -927,7 +928,16 @@ async function callOddsAPI()
 
 function oddsAPIError(error)
 {
-    alert(error.responseJSON.message)
+    if(error.responseJSON.message.includes("quota"))
+    {
+        odds_api_key = config.ODDS_API_KEY2;
+        callOddsAPI();
+    }
+    else
+    {
+        alert(error.responseJSON.message)
+    }
+    
 }
 
 function oddsAPIResponse(response)
@@ -954,7 +964,7 @@ function ODDS_API_CALL()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?apiKey=" + config.ODDS_API_KEY + "&regions=us&markets=h2h,spreads,totals",
+        "url": "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?apiKey=" + odds_api_key + "&regions=us&markets=h2h,spreads,totals",
         "method": "GET"
     };
 
