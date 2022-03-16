@@ -694,7 +694,7 @@ function getNBAOddsData(nbaGame)
     nbaGame.fvl5_adj = nbaGame.homeTeam.l5_adj > nbaGame.awayTeam.l5_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
     nbaGame.spl5_adj = Math.abs(nbaGame.homeTeam.l5_adj - nbaGame.awayTeam.l5_adj);
 
-    nbaGame.fvl10_full = nbaGame.homeTeam.la0_full > nbaGame.awayTeam.l10_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
+    nbaGame.fvl10_full = nbaGame.homeTeam.l10_full > nbaGame.awayTeam.l10_full ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
     nbaGame.spl10_full = Math.abs(nbaGame.homeTeam.l10_full - nbaGame.awayTeam.l10_full);
     nbaGame.fvl10_adj = nbaGame.homeTeam.last10_adj > nbaGame.awayTeam.l10_adj ? nbaGame.homeTeam.abbv : nbaGame.awayTeam.abbv;
     nbaGame.spl10_adj = Math.abs(nbaGame.homeTeam.l10_adj - nbaGame.awayTeam.l10_adj);
@@ -738,8 +738,8 @@ function getNBAOddsData(nbaGame)
     nbaGame.ousn_full = nbaGame.homeTeam.sn_full + nbaGame.awayTeam.sn_full;
     nbaGame.ousn_adj = nbaGame.homeTeam.sn_adj + nbaGame.awayTeam.sn_adj;
 
-    nbaGame.ouha_full = nbaGame.homeTeam.home_full + nbaGame.awayTeam.away_full;
-    nbaGame.ouha_adj = nbaGame.homeTeam.home_adj + nbaGame.awayTeam.away_adj;
+    nbaGame.ouha_full = nbaGame.homeTeam.ha_full + nbaGame.awayTeam.ha_full;
+    nbaGame.ouha_adj = nbaGame.homeTeam.ha_adj + nbaGame.awayTeam.ha_adj;
 
     nbaGame.ouwm_full = nbaGame.homeTeam.wm_full + nbaGame.awayTeam.wm_full;
     nbaGame.ouwm_adj = nbaGame.homeTeam.wm_adj + nbaGame.awayTeam.wm_adj;
@@ -769,7 +769,7 @@ function getNBASpreadPick(calcSpreadFav, calcSpreadNum, nbaGame)
         }
         else if(spreadDiff >= -5 && spreadDiff <= 5)
         {
-            return { backcolor: noColor, bordercolor: gray, forecolor: black, pick: "T", pickfull: "TOO CLOSE"};
+            return { backcolor: noColor, bordercolor: gray, forecolor: gray, pick: "T", pickfull: "TOO CLOSE"};
         }
         else if(spreadDiff > 5 && spreadDiff <= 10)
         {
@@ -801,7 +801,7 @@ function getNBASpreadPick(calcSpreadFav, calcSpreadNum, nbaGame)
         }
         else if(spreadDiff >= -5 && spreadDiff <= 5)
         {
-            return { backcolor: noColor, bordercolor: gray, forecolor: black, pick: "T" , pickfull: "TOO CLOSE"};
+            return { backcolor: noColor, bordercolor: gray, forecolor: gray, pick: "T" , pickfull: "TOO CLOSE"};
         }
         else if(spreadDiff > 5 && spreadDiff <= 10)
         {
@@ -835,7 +835,7 @@ function getNBAOverUnderPick(calcOverUnder, nbaGame)
     }
     else if (overunderDiff >= -5 && overunderDiff <= 5)
     {
-        return { backcolor: noColor, bordercolor: gray, forecolor: black, pick: "T" , pickfull: "TOO CLOSE" };
+        return { backcolor: noColor, bordercolor: gray, forecolor: gray, pick: "T" , pickfull: "TOO CLOSE" };
     }
     else if (overunderDiff > 5 && overunderDiff <= 10)
     {
