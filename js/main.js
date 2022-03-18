@@ -245,79 +245,73 @@ function getNBAGameData()
     // for each game, loop to get data
     nbaDayArray.forEach(function(game)
     {
-        // find if game is current date
-        var gameDate = new Date(game.date.start);
-        var currentDate = new Date();
-        if(gameDate.setHours(0,0,0,0) == currentDate.setHours(0,0,0,0))
+        // load seperate 'game.html' into main game div
+        var $game = $('<div>');
+        $game.load("game.html", function()
         {
-            // load seperate 'game.html' into main game div
-            var $game = $('<div>');
-            $game.load("game.html", function()
+            // create new NBA Game Object
+            var homeTeam = new NBA_Team();
+            var awayTeam = new NBA_Team();
+            var nbaGame = new NBA_Game(homeTeam, awayTeam);
+
+            // get current game
+            var $currentGame = $game.find('.game-container');
+
+            // set team logos
+            var awayTeamIMG = $currentGame.find('.team-img').eq(0).find("img");
+            awayTeamIMG.attr("src", game.teams.visitors.logo);
+
+            var homeTeamIMG = $currentGame.find('.team-img').eq(1).find("img");
+            homeTeamIMG.attr("src", game.teams.home.logo);
+
+            // set team names
+            var awayTeamName = $currentGame.find('.team-name').eq(0);
+            awayTeamName.text(game.teams.visitors.nickname);
+            awayTeam.teamName = game.teams.visitors.nickname;
+            awayTeam.teamFullName = game.teams.visitors.name;
+            awayTeam.abbv = game.teams.visitors.code;
+
+            var homeTeamName = $currentGame.find('.team-name').eq(1);
+            homeTeamName.text(game.teams.home.nickname);
+            homeTeam.teamName = game.teams.home.nickname;
+            homeTeam.teamFullName = game.teams.home.name;
+            homeTeam.abbv = game.teams.home.code;
+
+            // set team ids
+            awayTeam.id = game.teams.visitors.id;
+            homeTeam.id = game.teams.home.id;
+
+            // set locations
+            awayTeam.location = "away";
+            homeTeam.location = "home";
+
+            // compile nba stats
+            getNBATeamData(awayTeam, homeTeam, game);
+            getNBATeamData(homeTeam, awayTeam, game);
+
+            // compile draftkings odds
+            getNBAOddsData(nbaGame, $currentGame);
+            var gameSpread = $currentGame.find('.spread').eq(0);
+            gameSpread.text(nbaGame.dkSpreadFav + " " + nbaGame.dkSpreadNum);
+            var gameOverUnder = $currentGame.find('.overunder').eq(0);
+            gameOverUnder.text(nbaGame.dkOverUnder);
+
+            // compile calculated odds
+            keywords.forEach(function(keyword)
             {
-                // create new NBA Game Object
-                var homeTeam = new NBA_Team();
-                var awayTeam = new NBA_Team();
-                var nbaGame = new NBA_Game(homeTeam, awayTeam);
+                fillBetBox_Spread($currentGame, nbaGame, keyword, "full");
+                fillBetBox_OverUnder($currentGame, nbaGame, keyword, "full");
 
-                // get current game
-                var $currentGame = $game.find('.game-container');
-
-                // set team logos
-                var awayTeamIMG = $currentGame.find('.team-img').eq(0).find("img");
-                awayTeamIMG.attr("src", game.teams.visitors.logo);
-
-                var homeTeamIMG = $currentGame.find('.team-img').eq(1).find("img");
-                homeTeamIMG.attr("src", game.teams.home.logo);
-
-                // set team names
-                var awayTeamName = $currentGame.find('.team-name').eq(0);
-                awayTeamName.text(game.teams.visitors.nickname);
-                awayTeam.teamName = game.teams.visitors.nickname;
-                awayTeam.teamFullName = game.teams.visitors.name;
-                awayTeam.abbv = game.teams.visitors.code;
-
-                var homeTeamName = $currentGame.find('.team-name').eq(1);
-                homeTeamName.text(game.teams.home.nickname);
-                homeTeam.teamName = game.teams.home.nickname;
-                homeTeam.teamFullName = game.teams.home.name;
-                homeTeam.abbv = game.teams.home.code;
-
-                // set team ids
-                awayTeam.id = game.teams.visitors.id;
-                homeTeam.id = game.teams.home.id;
-
-                // set locations
-                awayTeam.location = "away";
-                homeTeam.location = "home";
-
-                // compile nba stats
-                getNBATeamData(awayTeam, homeTeam, game);
-                getNBATeamData(homeTeam, awayTeam, game);
-
-                // compile draftkings odds
-                getNBAOddsData(nbaGame, $currentGame);
-                var gameSpread = $currentGame.find('.spread').eq(0);
-                gameSpread.text(nbaGame.dkSpreadFav + " " + nbaGame.dkSpreadNum);
-                var gameOverUnder = $currentGame.find('.overunder').eq(0);
-                gameOverUnder.text(nbaGame.dkOverUnder);
-
-                // compile calculated odds
-                keywords.forEach(function(keyword)
-                {
-                    fillBetBox_Spread($currentGame, nbaGame, keyword, "full");
-                    fillBetBox_OverUnder($currentGame, nbaGame, keyword, "full");
-
-                    fillBetBox_Spread($currentGame, nbaGame, keyword, "adj");
-                    fillBetBox_OverUnder($currentGame, nbaGame, keyword, "adj");
-                });
-
-                // add game to nba games array
-                nba_Games_Array.push(nbaGame);
-
-                // add game template to main game div
-                $("#games").append($game);
+                fillBetBox_Spread($currentGame, nbaGame, keyword, "adj");
+                fillBetBox_OverUnder($currentGame, nbaGame, keyword, "adj");
             });
-        }
+
+            // add game to nba games array
+            nba_Games_Array.push(nbaGame);
+
+            // add game template to main game div
+            $("#games").append($game);
+        });
     });
 }
 
