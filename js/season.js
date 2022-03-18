@@ -5,104 +5,135 @@ var nba_Games_Array = [];
 // #endregion
 
 // #region teams case/switch
-function getTeamAbbv(fullName)
+function getTeamValues(fullName)
 {
     var abbv = "";
+    var id = "";
     switch(fullName)
     {
         case "Atlanta":
             abbv = "ATL";
+            id = 1;
             break;
         case "Boston":
             abbv = "BOS";
+            id = 2;
             break;
         case "Brooklyn":
             abbv = "BKN";
+            id = 4;
             break;
         case "Charlotte":
             abbv = "CHA";
+            id = 5;
             break;
         case "Chicago":
             abbv = "CHI";
+            id = 6;
             break;
         case "Cleveland":
             abbv = "CLE";
+            id = 7;
             break;
         case "Dallas":
             abbv = "DAL";
+            id = 8;
             break;
         case "Denver":
             abbv = "DEN";
+            id = 9;
             break;
         case "Detroit":
             abbv = "DET";
+            id = 10;
             break;
         case "GoldenState":
             abbv = "GSW";
+            id = 11;
             break;
         case "Houston":
             abbv = "HOU";
+            id = 14;
             break;
         case "Indiana":
             abbv = "IND";
+            id = 15;
             break;
         case "LAClippers":
             abbv = "LAC";
+            id = 16;
             break;
         case "LALakers":
             abbv = "LAL";
+            id = 17;
             break;
         case "Memphis":
             abbv = "MEM";
+            id = 19;
             break;
         case "Miami":
             abbv = "MIA";
+            id = 20;
             break;
         case "Milwaukee":
             abbv = "MIL";
+            id = 21;
             break;
         case "Minnesota":
             abbv = "MIN";
+            id = 22;
             break;
         case "NewOrleans":
             abbv = "NOP";
+            id = 23;
             break;
         case "NewYork":
             abbv = "NYK";
+            id = 24;
             break;
         case "OklahomaCity":
             abbv = "OKC";
+            id = 25;
             break;
         case "Orlando":
             abbv = "ORL";
+            id = 26;
             break;
         case "Philadelphia":
             abbv = "PHI";
+            id = 27;
             break;
         case "Phoenix":
             abbv = "PHX";
+            id = 28;
             break;
         case "Portland":
             abbv = "POR";
+            id = 29;
             break;
         case "Sacramento":
             abbv = "SAC";
+            id = 30;
             break;
         case "SanAntonio":
             abbv = "SAS";
+            id = 31;
             break;
         case "Toronto":
             abbv = "TOR";
+            id = 38;
             break;
         case "Utah":
             abbv = "UTA";
+            id = 40;
             break;
         case "Washington":
             abbv = "WAS";
+            id = 41;
             break;
         default: "Error: No Team Name Found";
     }
-    return abbv;
+    return [abbv, id];
 }
 // #endregion
 
@@ -114,6 +145,8 @@ let NBA_Game = class
         this.homeTeam = home;
         this.awayTeam = away;
     }
+
+    static gameDate;
 
     static dkSpreadFav = "N/A";
     static dkSpreadNum = "N/A";
@@ -227,15 +260,16 @@ function getNBASeasonGames()
     // create header row
     var seasonHead = seasonTable.createTHead();
     var seasonHRow = seasonHead.insertRow(0);
-    seasonHRow.insertCell(0).innerHTML = "Game";
-    seasonHRow.insertCell(1).innerHTML = "L1_F";
-    seasonHRow.insertCell(2).innerHTML = "L3_F";
-    seasonHRow.insertCell(3).innerHTML = "L5_F";
-    seasonHRow.insertCell(4).innerHTML = "L10_F";
-    seasonHRow.insertCell(5).innerHTML = "SN_F";
-    seasonHRow.insertCell(6).innerHTML = "HA_F";
-    seasonHRow.insertCell(7).innerHTML = "Wm_F";
-    seasonHRow.insertCell(8).innerHTML = "Ws_F";
+    seasonHRow.insertCell(0).innerHTML = "Date";
+    seasonHRow.insertCell(-1).innerHTML = "Game";
+    seasonHRow.insertCell(-1).innerHTML = "L1_F";
+    seasonHRow.insertCell(-1).innerHTML = "L3_F";
+    seasonHRow.insertCell(-1).innerHTML = "L5_F";
+    seasonHRow.insertCell(-1).innerHTML = "L10_F";
+    seasonHRow.insertCell(-1).innerHTML = "SN_F";
+    seasonHRow.insertCell(-1).innerHTML = "HA_F";
+    seasonHRow.insertCell(-1).innerHTML = "Wm_F";
+    seasonHRow.insertCell(-1).innerHTML = "Ws_F";
 
     // get reverse of full json array
     var fullGames = fullJSON.reverse();
@@ -252,8 +286,20 @@ function getNBASeasonGames()
         var nbaGame = new NBA_Game(homeTeam, awayTeam);
 
         // get nba abbvs to match with other data set
-        homeTeam.abbv = getTeamAbbv(fullGames[i].Team);
-        awayTeam.abbv = getTeamAbbv(fullGames[i + 1].Team);
+        var teamValuesHome = getTeamValues(fullGames[i].Team);
+        var teamValuesAway = getTeamValues(fullGames[i + 1].Team);
+
+        homeTeam.abbv = teamValuesHome[0];
+        homeTeam.id = teamValuesHome[1];
+
+        awayTeam.abbv = teamValuesAway[0];
+        awayTeam.id = teamValuesAway[1];
+
+        // get date of game
+        nbaGame.gameDate = convertNBADate(fullGames[i].Date, "2020")
+
+        // run through nba stats data, find game
+        getNBAGameData(nbaGame);
 
         // create div with team elements
         var homeSpan = document.createElement("span");
@@ -274,56 +320,64 @@ function getNBASeasonGames()
         row.insertCell(0).innerHTML = awaySpan.outerHTML + atSpan.outerHTML + homeSpan.outerHTML;
         row.insertCell(1).innerHTML = "89.9%";
     }
-    
-    fullJSON.forEach(function() {
-        
-    });
 }
 
 function checkNBAData()
 {
-    // get nba stats object from local storage
-    if(localStorage.getItem('NBA_API_OBJ_20_21') !== null)
-    {
-        // if todays date matches local item, get data else call new data
-        getNBAGameData();
-    }
     // if local storage doesn't exist, make api call
-    else
+    if(localStorage.getItem('NBA_API_OBJ_20_21') === null)
     {
         callNBAAPI();
     }
 }
 // #endregion
 
+// #region other functions
+function convertNBADate(dateStr, year)
+{
+    var dateDay = dateStr.slice(-2);
+    var dateMonth = dateStr.charAt(dateStr.length -3);
+    var dateYear = parseInt(year);
+
+    if(dateStr.charAt(dateStr.length - 4).length !== 0)
+    {
+        dateMonth = dateStr.charAt(dateStr.length - 4) + dateMonth;
+    }
+    else
+    {
+        year = year + 1;
+    }
+
+    var date = new Date(dateYear.toString(), dateMonth - 1, dateDay);
+    return date;
+}
+// #endregion
+
 // #region data functions
-function getNBAGameData()
+function getNBAGameData(nbaGame)
 {
     // Retrieve the object from storage
     var retrievedObject = localStorage.getItem('NBA_API_OBJ_20_21');
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
 
-    // nba current day game array
-    var nbaDayArray = [];
+    // create team games array
+    var fullGames = [];
+    var adjGames = [];
 
-    // loop over full nba object to get days games
+    // for each game, loop to get data
     nbaOBJ.response.forEach(function(game)
     {
-        // find if game is current date
-        var gameDate = new Date(game.date.start);
-        var currentDate = new Date();
-        if(gameDate.setHours(0,0,0,0) == currentDate.setHours(0,0,0,0))
+        // if home or away id matches current ID
+        if(game.teams.home.id == nbaGame.homeTeam.id)
         {
-            nbaDayArray.push(game);
+            // if only games that were finished
+            if(game.date.end !== null)
+            {
+                fullGames.push(game);
+            }
         }
     });
-
-    // sort days games by start time
-    nbaDayArray.sort(function(a,b)
-    {
-        return new Date(a.date.start) - new Date(b.date.start);
-    })
 }
 // #endregion
 
