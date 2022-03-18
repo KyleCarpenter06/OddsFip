@@ -137,8 +137,9 @@ h4
     font-size: 16px;
     vertical-align: middle;
     line-height: 50px;
-    margin-left: 5px;
-    width: 100px;
+    width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .bet-market
@@ -231,7 +232,7 @@ h4
 
 .team-bet-text-left-space
 {
-    margin-left: 275px;
+    margin-left: 260px;
     display: inline-block;
 }
 
@@ -262,6 +263,31 @@ h4
     text-align: center;
     font-size: 13px;
 }
+
+.bet-box-outcome
+{
+    height: 32px;
+    width: 32px;
+    border: 1px solid #bbb;
+    box-sizing: border-box;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+
+/* PRINT-FRIENDLY STYLES */
+@media print
+{
+    .bet-box
+    {
+        -webkit-print-color-adjust: exact;
+    }
+
+    .bet-box-final
+    {
+        -webkit-print-color-adjust: exact;
+    }
+}
+
 /* #endregion */
 
 /* #region SEASON CLASSES */
