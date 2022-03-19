@@ -306,9 +306,9 @@ h4
 {
     background-color: rgb(218, 218, 218);
 }
-#season-table thead td:not(:first-child)
+#season-table td
 {
-    width: 40px;
+    padding: 0px 5px;
 }
 #season-table thead td:not(:last-child)
 {

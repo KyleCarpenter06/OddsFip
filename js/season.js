@@ -296,7 +296,8 @@ function getNBASeasonGames()
         awayTeam.id = teamValuesAway[1];
 
         // get date of game
-        nbaGame.gameDate = convertNBADate(fullGames[i].Date, "2020")
+        nbaGame.gameDate = convertNBADate(fullGames[i].Date, "2020");
+        var displayDate = ((nbaGame.gameDate.getMonth() > 8) ? (nbaGame.gameDate.getMonth() + 1) : ('0' + (nbaGame.gameDate.getMonth() + 1))) + '/' + ((nbaGame.gameDate.getDate() > 9) ? nbaGame.gameDate.getDate() : ('0' + nbaGame.gameDate.getDate())) + '/' + nbaGame.gameDate.getFullYear();
 
         // run through nba stats data, find game
         getNBAGameData(nbaGame);
@@ -317,8 +318,9 @@ function getNBASeasonGames()
 
         // insert row and cell
         var row = seasonBody.insertRow(0);
-        row.insertCell(0).innerHTML = awaySpan.outerHTML + atSpan.outerHTML + homeSpan.outerHTML;
-        row.insertCell(1).innerHTML = "89.9%";
+        row.insertCell(0).innerHTML = displayDate;
+        row.insertCell(-1).innerHTML = awaySpan.outerHTML + atSpan.outerHTML + homeSpan.outerHTML;
+        row.insertCell(-1).innerHTML = "89.9%";
     }
 }
 
@@ -345,7 +347,7 @@ function convertNBADate(dateStr, year)
     }
     else
     {
-        year = year + 1;
+        dateYear++;
     }
 
     var date = new Date(dateYear.toString(), dateMonth - 1, dateDay);
@@ -361,22 +363,46 @@ function getNBAGameData(nbaGame)
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
 
-    // create team games array
-    var fullGames = [];
-    var adjGames = [];
+    // create nba game array
+    var nbaHomeGames = [];
+    var nbaAwayGames = [];
 
-    // for each game, loop to get data
+    // loop all games, find current days game
     nbaOBJ.response.forEach(function(game)
     {
-        // if home or away id matches current ID
-        if(game.teams.home.id == nbaGame.homeTeam.id)
+        var gameStage = game.stage;
+        var gameStart = new Date(game.date.start);
+
+        // if game id matches current home ID, is not preseason and before current date
+        if(game.teams.home.id === nbaGame.homeTeam.id || game.teams.visitors.id === nbaGame.homeTeam.id)
         {
-            // if only games that were finished
-            if(game.date.end !== null)
+            if(gameStage > 1 && gameStart < nbaGame.gameDate)
             {
-                fullGames.push(game);
+                nbaHomeGames.push(game);
             }
         }
+
+        // if game id matches current away ID, is not preseason and before current date
+        if(game.teams.home.id === nbaGame.awayTeam.id || game.teams.visitors.id === nbaGame.awayTeam.id)
+        {
+            if(gameStage > 1 && gameStart < nbaGame.gameDate)
+            {
+                nbaAwayGames.push(game);
+            }
+        }
+
+        
+        
+        // var nbaOBJStart = new Date(game.date.start);
+        // var currentStart = nbaGame.gameDate;
+        // if(nbaOBJStart.setHours(0,0,0,0) == currentStart.setHours(0,0,0,0))
+        // {
+        //     // if home or away id matches current ID
+        //     if(game.teams.home.id == nbaGame.homeTeam.id)
+        //     {
+                
+        //     }
+        // }
     });
 }
 // #endregion
