@@ -390,19 +390,6 @@ function getNBAGameData(nbaGame)
                 nbaAwayGames.push(game);
             }
         }
-
-        
-        
-        // var nbaOBJStart = new Date(game.date.start);
-        // var currentStart = nbaGame.gameDate;
-        // if(nbaOBJStart.setHours(0,0,0,0) == currentStart.setHours(0,0,0,0))
-        // {
-        //     // if home or away id matches current ID
-        //     if(game.teams.home.id == nbaGame.homeTeam.id)
-        //     {
-                
-        //     }
-        // }
     });
 }
 // #endregion
