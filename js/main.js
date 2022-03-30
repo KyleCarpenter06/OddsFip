@@ -1,5 +1,3 @@
-import { fullJSON } from "./firebase.js";
-
 // #region global variables
 var today_Date = "";
 var nba_Games_Array = [];
@@ -139,10 +137,14 @@ $(function()
 {
     // call initial functions
     getTodaysDate();
-    checkNBAOdds();
-    checkNBAData();
-    getFirebaseData();
+    initFunction();
 })
+
+async function initFunction()
+{
+    await checkNBAOdds();
+    checkNBAData();
+}
 // #endregion
 
 // #region init sub functions
@@ -204,12 +206,6 @@ function checkNBAOdds()
     {
         callOddsAPI();
     }
-}
-
-function getFirebaseData()
-{
-    
-    var test = fullJSON;
 }
 // #endregion
 
@@ -549,7 +545,7 @@ function getNBATeamData(nbaTeam, oppTeam, nbaGame)
     nbaTeam.ws_full = Math.round(weightedS_full);
     nbaTeam.ws_adj = Math.round(weightedS_adj);
 
-    // final calculated score (average of two above weights)
+    // final calculated score (average of season & momentum, weighted toward adj)
     var final_full = (weightedM_full + weightedS_full) / 2;
     var final_adj = (weightedM_adj + weightedS_adj) / 2;
     var final = (final_full * .3) + (final_adj * .7);
