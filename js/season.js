@@ -325,11 +325,19 @@ function getNBASeasonGames()
         awaySpan.appendChild(awayText);
         atSpan.appendChild(atText);
 
+        // create check and cross elements
+        var checkIcon = document.createElement("i");
+        var xmarkIcon = document.createElement("i");
+        var dashIcon = document.createElement("i");
+        checkIcon.classList.add("fa-solid", "fa-check", "check-icon");
+        xmarkIcon.classList.add("fa-solid", "fa-xmark", "xmark-icon");
+        dashIcon.classList.add("fa-solid", "fa-minus");
+
         // insert row and cell
         var row = seasonBody.insertRow(0);
         row.insertCell(0).innerHTML = nbaGame.dispDate;
         row.insertCell(-1).innerHTML = awaySpan.outerHTML + atSpan.outerHTML + homeSpan.outerHTML;
-        row.insertCell(-1).innerHTML = "89.9%";
+        row.insertCell(-1).innerHTML = dashIcon.outerHTML;
     }
 }
 

@@ -28,7 +28,7 @@ html
 }
 body
 {
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family:'Open Sans', Tahoma, Geneva, Verdana, sans-serif;
 }
 header
 {
@@ -309,6 +309,8 @@ h4
 #season-table td
 {
     padding: 0px 5px;
+    vertical-align: middle;
+    text-align: center;
 }
 #season-table thead td:not(:last-child)
 {
@@ -339,7 +341,7 @@ h4
 {
     width: 30px;
     display: inline-block;
-    text-align:right;
+    text-align:right !important;
     margin-right: 4px;
 }
 
@@ -347,12 +349,25 @@ h4
 {
     width: 30px;
     display: inline-block;
+    text-align: left !important;
+    margin-left: 2px;
 }
 
 .season-team-at
 {
     width: 15px;
     display: inline-block;
+}
+
+.check-icon
+{
+    font-size: 14px;
+    color:rgb(53, 185, 0);
+}
+
+.xmark-icon
+{
+    color:rgb(231, 2, 2);
 }
 /* #endregion */
 
