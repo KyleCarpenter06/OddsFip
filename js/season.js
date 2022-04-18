@@ -2,6 +2,7 @@ import { fullJSON } from "./firebase.js";
 
 // #region global variables
 var nba_Games_Array = [];
+var betArchives;
 var bets = [];
 var keywords = ["l1", "l3", "l5", "l10", "sn", "ha", "wm", "ws", "final"];
 var dataTypes = ["full", "adj"];
@@ -311,13 +312,13 @@ function getNBASeasonGames()
     });
 
     // get reverse of full json array
-    var fullGames = fullJSON.reverse();
+    betArchives = fullJSON.reverse();
 
     // create body
     var seasonBody = seasonTable.createTBody();
 
     // iterate over each element
-    for(let i = 0; i < fullGames.length; i += 2)
+    for(let i = 0; i < betArchives.length; i += 2)
     {
         // create new NBA Game Object
         var homeTeam = new NBA_Team();
@@ -325,8 +326,8 @@ function getNBASeasonGames()
         var nbaGame = new NBA_Game(homeTeam, awayTeam);
 
         // get nba abbvs to match with other data set
-        var teamValuesHome = getTeamValues(fullGames[i].Team);
-        var teamValuesAway = getTeamValues(fullGames[i + 1].Team);
+        var teamValuesHome = getTeamValues(betArchives[i].Team);
+        var teamValuesAway = getTeamValues(betArchives[i + 1].Team);
 
         homeTeam.abbv = teamValuesHome[0];
         homeTeam.id = teamValuesHome[1];
@@ -335,8 +336,8 @@ function getNBASeasonGames()
         awayTeam.id = teamValuesAway[1];
 
         // get final score from both teams
-        homeTeam.score = parseInt(fullGames[i].Final);
-        awayTeam.score = parseInt(fullGames[i + 1].Final);
+        homeTeam.score = parseInt(betArchives[i].Final);
+        awayTeam.score = parseInt(betArchives[i + 1].Final);
 
         // get spread and over under of game
         nbaGame.finalSpread = Math.abs(homeTeam.score - awayTeam.score);
@@ -344,10 +345,10 @@ function getNBASeasonGames()
         nbaGame.finalOverUnder = homeTeam.score + awayTeam.score;
 
         // get odds of game
-        getNBAOdds(nbaGame, fullGames, i);
+        getNBAOdds(nbaGame, betArchives, i);
 
         // get date of game
-        getNBADate(nbaGame, fullGames[i].Date, "2020");
+        getNBADate(nbaGame, betArchives[i].Date, "2019");
 
         // run through nba stats data, find game
         getNBAGameData(nbaGame);
@@ -402,7 +403,7 @@ function getNBASeasonGames()
 function checkNBAData()
 {
     // if local storage doesn't exist, make api call
-    if(localStorage.getItem('NBA_API_OBJ_20_21') === null)
+    if(localStorage.getItem('NBA_API_OBJ') === null)
     {
         callNBAAPI();
     }
@@ -413,7 +414,7 @@ function checkNBAData()
 function getNBAGameData(nbaGame)
 {
     // Retrieve the object from storage
-    var retrievedObject = localStorage.getItem('NBA_API_OBJ_20_21');
+    var retrievedObject = localStorage.getItem('NBA_API_OBJ');
     var nbaOBJ = new Object();
     nbaOBJ = JSON.parse(retrievedObject);
 
@@ -1533,10 +1534,10 @@ function nbaAPIError(error)
 function nbaAPIResponse(response)
 {
     // Put the object into storage
-    localStorage.setItem('NBA_API_OBJ_20_21', JSON.stringify(response));
+    localStorage.setItem('NBA_API_OBJ', JSON.stringify(response));
 
     // check to make sure storage object exists
-    if(localStorage.getItem('NBA_API_OBJ_20_21') !== null)
+    if(localStorage.getItem('NBA_API_OBJ') !== null)
     {
         getNBAGameData();
     }
@@ -1551,7 +1552,7 @@ function NBA_API_CALL()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://api-nba-v1.p.rapidapi.com/games?season=2020",
+        "url": "https://api-nba-v1.p.rapidapi.com/games?season=2019",
         "method": "GET",
         "headers": {
             "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
