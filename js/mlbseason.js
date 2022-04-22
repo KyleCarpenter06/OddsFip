@@ -6,21 +6,23 @@ var fullSeason = [];
 var dateObj;
 var dateStr;
 var seasonStartDate;
+var seasonEndDate;
 
 // api
 var current_API_Key;
 var current_API_Index = 0;
-var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "zmvzszfujyeka8645vb6n9cf", "ffs9ynfsqewqhzc99rsgdtqn"];
+var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "zmvzszfujyeka8645vb6n9cf", "ffs9ynfsqewqhzc99rsgdtqn", "3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8"];
+var apiCallFreq = 1000/(MLB_API_KEYS.length - 1);
+var apiContinue = false;
 // #endregion
 
 // #region INIT
 $(function()
 {
-    
-
     // call sports radar api
     //callJSON();
-    SR_API_CALL_ROTATOR("call_SR_API_DATE")
+    SR_API_CALL_ROTATOR();
+    call_SR_API_DATE();
 });
 // #endregion
 
@@ -49,8 +51,9 @@ function getSeasonDate(response)
             return 0;
         });
 
-        // get start date
+        // get start & end date
         seasonStartDate = new Date(games[0].scheduled);
+        seasonEndDate = new Date(games[games.length - 1].scheduled);
 
         // create season array
         createSeasonArray();
@@ -64,8 +67,12 @@ function getSeasonDate(response)
 
 async function createSeasonArray()
 {
-    // get current date
-    dateObj = new Date();
+    // get selected date from dropdown & current year
+    var selectedYear = $("#years").val();
+    var currentYear = new Date().getFullYear().toString();
+
+    // if not current year, get end date else current date
+    dateObj = selectedYear === currentYear ? new Date() : seasonEndDate;
 
     // loop until date is before the season start date
     do
@@ -73,17 +80,29 @@ async function createSeasonArray()
         // format date for api call
         dateStr = formatDateToString(dateObj);
 
-        // call api function - wait specific amount of time based on # of api keys to avoid 403 error
-        await new Promise(resolve => setTimeout(resolve, 1000/MLB_API_KEYS.length));
-        //setTimeout(function()
-        //{
-            SR_API_CALL_ROTATOR("call_SR_API_GAMES");
-        //}, 1000/MLB_API_KEYS.length);
+        // set api flag to false
+        apiContinue = false;
+
+        // continously call api until data is found
+        do
+        {
+            // call api function - wait specific amount of time based on # of api keys to avoid 403 error
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            SR_API_CALL_ROTATOR();
+            call_SR_API_GAMES();
+        }
+        while(apiContinue === false)
 
         // finally, decrease date by one day
         dateObj.setDate(dateObj.getDate() - 1);
     }
     while(dateObj >= seasonStartDate);
+
+    // testing
+    var test = fullSeason.filter((value, index, self) => 
+    {
+        return self.findIndex(v => v.id === value.id) === index;
+    });
 
     var math = 1 + 1;
 }
@@ -93,8 +112,13 @@ function getPlayerData(response)
     // loop over each game, add to full season array
     response.league.games.forEach(function(game)
     {
-        fullSeason.push(game.game);
+        if(!(game.game.home.abbr === "NL" || game.game.away.abbr === "NL"))
+        {
+            fullSeason.push(game.game);
+        }
     });
+
+    apiContinue = true;
 }
 // #endregion
 
@@ -162,13 +186,21 @@ async function call_SR_API_GAMES()
     }
     else
     {
-        alert("Error: config.js file is missing.")
+        alert("Error: config.js file is missing.");
     }
 }
 
-function mlbAPIError(error)
+async function mlbAPIError(error)
 {
-    alert(error);
+    if(error.status === 403)
+    {
+        console.log("Error 403 on Date " + dateStr);
+    }
+    else
+    {
+        console.log("Error " + error.status + ": " + error.statusText + " on date " + dateStr);
+        //alert("Error " + error.status + ": " + error.statusText);
+    }
 }
 
 function mlbAPIResponse(response)
@@ -211,7 +243,7 @@ function SR_API_CALL_DATE()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/2022/REG/schedule.json?api_key=" + current_API_Key,
+        "url": "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + $("#years").val() + "/REG/schedule.json?api_key=" + current_API_Key,
         "method": "GET"
     };
 
@@ -236,7 +268,7 @@ function SR_API_CALL_GAMES()
     });
 }
 
-function SR_API_CALL_ROTATOR(functionName)
+function SR_API_CALL_ROTATOR()
 {
     // increment api key index, or set to zero if reached end of array
     var index = current_API_Index + 1;
@@ -244,9 +276,6 @@ function SR_API_CALL_ROTATOR(functionName)
     
     // set current api key
     current_API_Key = MLB_API_KEYS[current_API_Index];
-
-    // call function
-    window[functionName]();
 }
 // #endregion
 
