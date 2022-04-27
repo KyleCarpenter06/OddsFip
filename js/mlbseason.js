@@ -1,6 +1,7 @@
 // #region VARIABLES
 // arrays
-var fullSeason = [];
+var fullSeason;
+var fullBets;
 
 // dates
 var dateObj;
@@ -8,10 +9,15 @@ var dateStr;
 var seasonStartDate;
 var seasonEndDate;
 
+// bad keys - try again 5/1
+// bk87n7t2wdmzh89v64rnwq2t
+// zmvzszfujyeka8645vb6n9cf
+// ffs9ynfsqewqhzc99rsgdtqn
+
 // api
 var current_API_Key;
 var current_API_Index = 0;
-var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "zmvzszfujyeka8645vb6n9cf", "ffs9ynfsqewqhzc99rsgdtqn", "3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8"];
+var MLB_API_KEYS = ["3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8", "wh3vb2y3hd2f5w3hc55m29e5", "c2xkcp8ppxxshn884c7s7u8c", "53gwzh7xzcncfywrb7nrfejr"];
 var apiCallFreq = 1000/(MLB_API_KEYS.length - 1);
 var apiContinue = false;
 // #endregion
@@ -19,18 +25,21 @@ var apiContinue = false;
 // #region INIT
 $(function()
 {
-    // call sports radar api
+    // get data from AWS - testing
     //callJSON();
+
+    dateStr = "2021/10/03";
+    current_API_Key = "3h98e9z4ruk9hhq8ptkp3u6b";
+    call_SR_API_DATE
+
+    // call sports radar api
     SR_API_CALL_ROTATOR();
     call_SR_API_DATE();
 });
 // #endregion
 
 // #region DATA FUNCTIONS
-function getFullSeasonBetStats(response)
-{
 
-}
 
 function getSeasonDate(response)
 {
@@ -52,7 +61,9 @@ function getSeasonDate(response)
         });
 
         // get start & end date
-        seasonStartDate = new Date(games[0].scheduled);
+        //var startDate = new Date(games[0].scheduled)
+        seasonStartDate = new Date(new Date(games[0].scheduled).setHours(0, 0, 0));
+        seasonStartDate = new Date(seasonStartDate.setDate(seasonStartDate.getDate() - 1));
         seasonEndDate = new Date(games[games.length - 1].scheduled);
 
         // create season array
@@ -87,7 +98,7 @@ async function createSeasonArray()
         do
         {
             // call api function - wait specific amount of time based on # of api keys to avoid 403 error
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, apiCallFreq));
             SR_API_CALL_ROTATOR();
             call_SR_API_GAMES();
         }
@@ -98,13 +109,14 @@ async function createSeasonArray()
     }
     while(dateObj >= seasonStartDate);
 
-    // testing
-    var test = fullSeason.filter((value, index, self) => 
+    // filter by id to remove duplicate values
+    fullSeason = fullSeason.filter((value, index, self) => 
     {
         return self.findIndex(v => v.id === value.id) === index;
     });
 
-    var math = 1 + 1;
+    // sort by date
+    fullSeason = fullSeason.sort((a, b) => new Date(b.scheduled) - new Date(a.scheduled));
 }
 
 function getPlayerData(response)
@@ -122,24 +134,48 @@ function getPlayerData(response)
 }
 // #endregion
 
-// #region SEASON BET JSON FUNCTIONS
+// #region SEASON & BET JSON FUNCTIONS
 async function callJSON()
 {
-    await MLB_JSON_CALL()
-    .then((response) => getFullSeasonBetStats(response))
+    await MLB_JSON_BET_CALL()
+    .then((response) => MLB_JSON_BET_RESP(response))
     .catch((error) => MLB_JSON_ERROR(error));
+
+    await MLB_JSON_SEASON_CALL()
+    .then((response) => MLB_JSON_SEASON_RESP(response))
+    .catch((error) => MLB_JSON_ERROR(error));
+}
+
+function MLB_JSON_BET_RESP(response)
+{
+    fullBets = response;
+}
+
+function MLB_JSON_SEASON_RESP(response)
+{
+    fullSeason = response;
 }
 
 function MLB_JSON_ERROR(error)
 {
-    alert(error);
+    alert("Error " + error.status + ": " + error.statusText);
 }
 
-function MLB_JSON_CALL()
+function MLB_JSON_BET_CALL()
 {
     return new Promise(function(resolve, reject)
     {
-        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_stats_21.json")
+        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_bets_2021.json")
+        .done(resolve)
+        .fail(reject);
+    });
+}
+
+function MLB_JSON_SEASON_CALL()
+{
+    return new Promise(function(resolve, reject)
+    {
+        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_season_2021.json")
         .done(resolve)
         .fail(reject);
     });
@@ -258,7 +294,7 @@ function SR_API_CALL_GAMES()
     const settings = {
         "async": true,
         "crossDomain": true,
-        "url": "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + dateStr + "/boxscore.json?api_key=" + current_API_Key,
+        "url": "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + dateStr + "/summary.json?api_key=" + current_API_Key,
         "method": "GET"
     };
 
