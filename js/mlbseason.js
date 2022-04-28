@@ -1,6 +1,6 @@
 // #region VARIABLES
 // arrays
-var fullSeason;
+var fullSeason = [];
 var fullBets;
 
 // dates
@@ -13,11 +13,15 @@ var seasonEndDate;
 // bk87n7t2wdmzh89v64rnwq2t
 // zmvzszfujyeka8645vb6n9cf
 // ffs9ynfsqewqhzc99rsgdtqn
+// 3h98e9z4ruk9hhq8ptkp3u6b
+// 3h4d4ykvhh8v4q534yyddyd8
+
+// 4/27/22 - need to get more api keys
 
 // api
 var current_API_Key;
 var current_API_Index = 0;
-var MLB_API_KEYS = ["3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8", "wh3vb2y3hd2f5w3hc55m29e5", "c2xkcp8ppxxshn884c7s7u8c", "53gwzh7xzcncfywrb7nrfejr"];
+var MLB_API_KEYS = ["wh3vb2y3hd2f5w3hc55m29e5", "c2xkcp8ppxxshn884c7s7u8c", "53gwzh7xzcncfywrb7nrfejr"];
 var apiCallFreq = 1000/(MLB_API_KEYS.length - 1);
 var apiContinue = false;
 // #endregion
@@ -27,10 +31,6 @@ $(function()
 {
     // get data from AWS - testing
     //callJSON();
-
-    dateStr = "2021/10/03";
-    current_API_Key = "3h98e9z4ruk9hhq8ptkp3u6b";
-    call_SR_API_DATE
 
     // call sports radar api
     SR_API_CALL_ROTATOR();
