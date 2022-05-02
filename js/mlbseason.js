@@ -13,7 +13,128 @@ var seasonEndDate;
 // api
 var current_API_Key;
 var current_API_Index = 0;
-var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "zmvzszfujyeka8645vb6n9cf", "ffs9ynfsqewqhzc99rsgdtqn", "3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8", "wh3vb2y3hd2f5w3hc55m29e5", "c2xkcp8ppxxshn884c7s7u8c", "53gwzh7xzcncfywrb7nrfejr", "qfkczxp68bk7hpukayu2qxat", "f9zep6fa5k9kvhqppv8ru9ac", "y9mjbzsa52ewbafgxrjh7dys"];
+var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "zmvzszfujyeka8645vb6n9cf", "ffs9ynfsqewqhzc99rsgdtqn", "3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8", "wh3vb2y3hd2f5w3hc55m29e5", "c2xkcp8ppxxshn884c7s7u8c", "53gwzh7xzcncfywrb7nrfejr", "qfkczxp68bk7hpukayu2qxat", "f9zep6fa5k9kvhqppv8ru9ac", "y9mjbzsa52ewbafgxrjh7dys", "asb3qh7jkwt4943wb5kycg93", "d2weyx7kzdzsayrbg8h4dqu6", "n9sxthda6h5sw6n2xtb4vbx5"];
+
+// other
+var currentGame;
+
+// mlb game object class
+let MLB_Game = class
+{
+    constructor(home, away)
+    {
+        this.homeTeam = home;
+        this.awayTeam = away;
+    }
+
+    static gameDate;
+    static gameID;
+
+    static spreadFav = "N/A";
+    static overUnder = "N/A";
+
+    static finalSpread;
+    static finalFavorite;
+    static finalOverUnder;
+
+    static spl1_full;
+    static spl3_full;
+    static spl5_full;
+    static spl10_full;
+    static spsn_full;
+    static spha_full;
+    static spwm_full;
+    static spws_full;
+
+    static spl1_adj;
+    static spl3_adj;
+    static spl5_adj;
+    static spl10_adj;
+    static spsn_adj;
+    static spha_adj;
+    static spwm_adj;
+    static spws_adj;
+
+    static spfinal;
+
+    static fvl1_full;
+    static fvl3_full;
+    static fvl5_full;
+    static fvl10_full;
+    static fvsn_full;
+    static fvha_full;
+    static fvwm_full;
+    static fvws_full;
+
+    static fvl1_adj;
+    static fvl3_adj;
+    static fvl5_adj;
+    static fvl10_adj;
+    static fvsn_adj;
+    static fvha_adj;
+    static fvwm_adj;
+    static fvws_adj;
+
+    static fvfinal;
+    
+    static oul1_full;
+    static oul3_full;
+    static oul5_full;
+    static oul10_full;
+    static ousn_full;
+    static ouha_full;
+    static ouwm_full;
+    static ouws_full;
+
+    static oul1_adj;
+    static oul3_adj;
+    static oul5_adj;
+    static oul10_adj;
+    static ousn_adj;
+    static ouha_adj;
+    static ouwm_adj;
+    static ouws_adj;
+
+    static oufinal;
+}
+
+let MLB_Team = class
+{
+    static teamName;
+    static teamFullName;
+    static abbv;
+    static id;
+    static location;
+    static record;
+    static score;
+    static stPitcherName;
+    static stPitcherIP;
+    static stPitcherRA;
+    static stPitcherERA;
+    static bullpenIP;
+    static bullpenRA;
+    static bullpenERA;
+
+    static l1_full; // last game
+    static l3_full; // last 3 game average
+    static l5_full; // last 5 game average
+    static l10_full; // last 10 game average
+    static sn_full; // full season average
+    static ha_full; // home/away average
+    static wm_full; // weighted momentum
+    static ws_full; // weighted season
+
+    static l1_adj; // last game
+    static l3_adj; // last 3 game average
+    static l5_adj; // last 5 game average
+    static l10_adj; // last 10 game average
+    static sn_adj; // full season average
+    static ha_adj; // home/away average
+    static wm_adj; // weighted momentum
+    static ws_adj; // weighted season
+
+    static final; // final outcome based on average of weights
+}
 // #endregion
 
 // #region INIT
@@ -26,7 +147,7 @@ $(function()
     //call_SR_API_GAMES();
 
     // get data from AWS - testing
-    //callJSON();
+    callJSON();
 
     // call sports radar api
     //SR_API_CALL_ROTATOR();
@@ -102,7 +223,7 @@ async function createSeasonArray()
     // filter by id to remove duplicate values
     fullSeason = fullSeason.filter((value, index, self) => 
     {
-        return self.findIndex(v => v.id === value.id) === index;
+        return self.findIndex(v => v.gameID === value.gameID) === index;
     });
 
     // cycle through missing dates - get rest of data
@@ -123,23 +244,57 @@ async function createSeasonArray()
     // filter by id to remove duplicate values
     fullSeason = fullSeason.filter((value, index, self) => 
     {
-        return self.findIndex(v => v.id === value.id) === index;
+        return self.findIndex(v => v.gameID === value.gameID) === index;
     });
 
     // sort by date
-    fullSeason = fullSeason.sort((a, b) => new Date(b.scheduled) - new Date(a.scheduled));
+    fullSeason = fullSeason.sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
 }
 
 function getPlayerData(response)
 {
-    // loop over each game, add to full season array
-    response.league.games.forEach(function(game)
+    if(typeof(response.league.games) != "undefined")
     {
-        if(!(game.game.home.abbr === "NL" || game.game.away.abbr === "NL"))
+        // loop over each game, add to full season array
+        response.league.games.forEach(function(game)
         {
-            fullSeason.push(game.game);
-        }
-    });
+            if(!(game.game.home.abbr === "NL" || game.game.away.abbr === "NL" || game.game.status === "canceled"))
+            {
+                var homeTeam = new MLB_Team();
+                var awayTeam = new MLB_Team();
+                var mlbGame = new MLB_Game(homeTeam, awayTeam);
+                mlbGame.gameID = game.game.id;
+                mlbGame.gameDate = game.game.scheduled;
+                currentGame = game;
+
+                homeTeam.abbv = game.game.home.abbr;
+                awayTeam.abbv = game.game.away.abbr;
+
+                homeTeam.teamFullName = game.game.home.market + " " + game.game.home.name;
+                awayTeam.teamFullName = game.game.away.market + " " + game.game.away.name;
+
+                homeTeam.record = game.game.home.win / (game.game.home.win + game.game.home.loss);
+                awayTeam.record = game.game.away.win / (game.game.away.win + game.game.away.loss);
+
+                homeTeam.score = game.game.home.runs;
+                awayTeam.score = game.game.away.runs;
+
+                homeTeam.stPitcherName = game.game.home.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name;
+                awayTeam.stPitcherName = game.game.away.starting_pitcher.first_name + " " + game.game.away.starting_pitcher.last_name;
+                homeTeam.stPitcherIP = game.game.home.statistics.pitching.starters.ip_2;
+                awayTeam.stPitcherIP = game.game.away.statistics.pitching.starters.ip_2;
+                homeTeam.stPitcherRA = game.game.home.statistics.pitching.starters.runs.earned;
+                awayTeam.stPitcherRA = game.game.away.statistics.pitching.starters.runs.earned;
+
+                homeTeam.bullpenIP = typeof game.game.home.statistics.pitching.bullpen != 'undefined' ? game.game.home.statistics.pitching.bullpen.ip_2 : 0;
+                awayTeam.bullpenIP = typeof game.game.away.statistics.pitching.bullpen != 'undefined' ? game.game.away.statistics.pitching.bullpen.ip_2 : 0;
+                homeTeam.bullpenRA = typeof game.game.home.statistics.pitching.bullpen != 'undefined' ? game.game.home.statistics.pitching.bullpen.runs.earned : 0;
+                awayTeam.bullpenRA = typeof game.game.away.statistics.pitching.bullpen != 'undefined' ? game.game.away.statistics.pitching.bullpen.runs.earned : 0;
+
+                fullSeason.push(mlbGame);
+            }
+        });
+    }
 }
 // #endregion
 
@@ -150,9 +305,9 @@ async function callJSON()
     .then((response) => MLB_JSON_BET_RESP(response))
     .catch((error) => MLB_JSON_ERROR(error));
 
-    await MLB_JSON_SEASON_CALL()
-    .then((response) => MLB_JSON_SEASON_RESP(response))
-    .catch((error) => MLB_JSON_ERROR(error));
+    // await MLB_JSON_SEASON_CALL()
+    // .then((response) => MLB_JSON_SEASON_RESP(response))
+    // .catch((error) => MLB_JSON_ERROR(error));
 }
 
 function MLB_JSON_BET_RESP(response)
@@ -412,7 +567,7 @@ function SR_API_CALL_ROTATOR()
 {
     // increment api key index, or set to zero if reached end of array
     var index = current_API_Index + 1;
-    current_API_Index = index === MLB_API_KEYS.length ? 0 : index;
+    current_API_Index = index >= MLB_API_KEYS.length ? 0 : index;
     
     // set current api key
     current_API_Key = MLB_API_KEYS[current_API_Index];
