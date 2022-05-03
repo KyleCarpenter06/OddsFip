@@ -11,9 +11,9 @@ var seasonStartDate;
 var seasonEndDate;
 
 // api
-var current_API_Key;
+var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "apnq8u2agmukcya9uhr22sp9", "9wcwthcuxvt8ypbyckma4nbn", "txxs95hnus8hqz2mmqtt4ezj", "skh58g4gu5pfuy8h9s5edug7", "9wcc4j65v4zt6zvp7e2af9a4", "fw8748cmq2gn7dm5vhut5m6m", "h7wygfcaf7xzc2kggvwwna68"];
+var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
-var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "zmvzszfujyeka8645vb6n9cf", "ffs9ynfsqewqhzc99rsgdtqn", "3h98e9z4ruk9hhq8ptkp3u6b", "3h4d4ykvhh8v4q534yyddyd8", "wh3vb2y3hd2f5w3hc55m29e5", "c2xkcp8ppxxshn884c7s7u8c", "53gwzh7xzcncfywrb7nrfejr", "qfkczxp68bk7hpukayu2qxat", "f9zep6fa5k9kvhqppv8ru9ac", "y9mjbzsa52ewbafgxrjh7dys", "asb3qh7jkwt4943wb5kycg93", "d2weyx7kzdzsayrbg8h4dqu6", "n9sxthda6h5sw6n2xtb4vbx5"];
 
 // other
 var currentGame;
@@ -140,18 +140,10 @@ let MLB_Team = class
 // #region INIT
 $(function()
 {
-    // 4/28/22 - single api call testing to get call limit
-    //dateStr = "2021/10/03";
-    //current_API_Key = "y9mjbzsa52ewbafgxrjh7dys";
-
-    //call_SR_API_GAMES();
-
     // get data from AWS - testing
     callJSON();
 
     // call sports radar api
-    //SR_API_CALL_ROTATOR();
-    current_API_Key = MLB_API_KEYS[0];
     call_SR_API_DATE();
 });
 // #endregion
@@ -208,7 +200,7 @@ async function createSeasonArray()
         dateStr = formatDateToString(dateObj);
 
         // call api function - wait specific amount of time based on # of api keys to avoid 403 error
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         SR_API_CALL_ROTATOR();
         call_SR_API_GAMES();
 
