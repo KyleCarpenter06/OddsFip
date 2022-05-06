@@ -14,6 +14,7 @@ var seasonEndDate;
 var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "apnq8u2agmukcya9uhr22sp9", "9wcwthcuxvt8ypbyckma4nbn", "txxs95hnus8hqz2mmqtt4ezj", "skh58g4gu5pfuy8h9s5edug7", "9wcc4j65v4zt6zvp7e2af9a4", "fw8748cmq2gn7dm5vhut5m6m", "h7wygfcaf7xzc2kggvwwna68"];
 var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
+var apiURL;
 
 // other
 var currentGame;
@@ -143,9 +144,19 @@ $(function()
     // get data from AWS - testing
     callJSON();
 
+    call_SR_API_TEST();
+
     // call sports radar api
-    call_SR_API_DATE();
+    //call_SR_API_DATE();
 });
+
+function getAvailableKeys()
+{
+    MLB_API_KEYS.forEach(function(key)
+    {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    })
+}
 // #endregion
 
 // #region DATA FUNCTIONS
@@ -354,6 +365,26 @@ async function callMLBAPI()
     }
 }
 
+async function call_SR_API_TEST()
+{
+    if(typeof config !== "undefined")
+    {
+        await SR_API_CALL_TEST()
+        .then((response) => call_Next_Test(response))
+        .catch((error) => call_Next_Test(error));
+    }
+    else
+    {
+        alert("Error: config.js file is missing.")
+    }
+}
+
+function call_Next_Test()
+{
+    SR_API_CALL_ROTATOR();
+    call_SR_API_TEST();
+}
+
 async function call_SR_API_DATE()
 {   
     if(typeof config !== "undefined")
@@ -445,47 +476,29 @@ function MLB_API_CALL()
     });
 }
 
+function SR_API_CALL_TEST()
+{
+    apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/league/seasons.json?api_key=" + current_API_Key;
+    
+    return SR_API_CALL();
+}
+
 function SR_API_CALL_DATE()
 {
-    const settings = {
-        "async": true,
-        "crossDomain": true,
-        "url": "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + $("#years").val() + "/REG/schedule.json?api_key=" + current_API_Key,
-        "method": "GET"
-    };
-
-    return new Promise(function(resolve, reject)
-    {
-        $.ajax(settings).done(resolve).fail(reject);
-    });
+    apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + $("#years").val() + "/REG/schedule.json?api_key=" + current_API_Key;
+    
+    return SR_API_CALL();
 }
 
 function SR_API_CALL_GAMES()
 {
-    // const settings = {
-    //     "async": true,
-    //     "crossDomain": true,
-    //     "url": "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + dateStr + "/summary.json?api_key=" + current_API_Key,
-    //     "method": "GET",
-    //     "success": function(data)
-    //     {
-    //         xhr.getResponseHeader("X-Plan-Quota-Current");
-    //     }
-    // };
+    apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + dateStr + "/summary.json?api_key=" + current_API_Key;
 
-    // return new Promise(function(resolve, reject)
-    // {
-    //     var xhr = $.ajax(settings).done(resolve).fail(reject);
+    return SR_API_CALL();
+}
 
-    //     var test = 1 + 1;
-    // });
-
-    // --- testing 4/28/22
-
-    // idea - call full season at once, no timeout, then compile list of missed dates > timeout then call again
-    var apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + dateStr + "/summary.json?api_key=" + current_API_Key;
-
-
+function SR_API_CALL()
+{
     return new Promise(function (resolve, reject)
     {
         // create api function call
@@ -521,12 +534,13 @@ function SR_API_CALL_GAMES()
             }
             else if (this.readyState === 4 && this.status !== 200)
             {
+                // get amount of calls left, call function
+                getAPIQuota(xhr.getResponseHeader("X-Plan-Quota-Current"), xhr.getResponseHeader("X-Final-Url"));
+
                 // return other error
                 reject({
                     status: this.status,
-                    statusText: xhr.statusText,
-                    finalUrl: xhr.getResponseHeader("X-Final-Url"),
-                    quota: xhr.getResponseHeader("X-Plan-Quota-Current")
+                    statusText: xhr.statusText
                 });
             }
         };
@@ -549,7 +563,7 @@ function getAPIQuota(quota, apiUrl)
     var apiKey = apiUrl.split("api_key=").pop();
 
     // if quote is near 1000, remove key from key array
-    if(quotaCurrent > 990)
+    if(quotaCurrent > 950)
     {
         MLB_API_KEYS = MLB_API_KEYS.filter(key => key !== apiKey);
     }
