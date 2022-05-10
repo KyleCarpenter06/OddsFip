@@ -15,6 +15,7 @@ var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "apnq8u2agmukcya9uhr22sp9", "9wc
 var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
 var apiURL;
+var badAPIKeys = [];
 
 // other
 var currentGame;
@@ -141,21 +142,34 @@ let MLB_Team = class
 // #region INIT
 $(function()
 {
+    getAvailableKeys();
     // get data from AWS - testing
-    callJSON();
+    //callJSON();
 
-    call_SR_API_TEST();
+    //call_SR_API_TEST();
 
     // call sports radar api
     //call_SR_API_DATE();
 });
 
-function getAvailableKeys()
+async function getAvailableKeys()
 {
-    MLB_API_KEYS.forEach(function(key)
+    // iterate over each api key
+    for(let i = 0; i < MLB_API_KEYS.length; i++)
     {
+        // wait one second
         await new Promise(resolve => setTimeout(resolve, 1000));
-    })
+
+        // call api test
+        await SR_API_CALL_TEST();
+
+        // call rotator
+        current_API_Key = MLB_API_KEYS[i];
+    }
+
+    removeBadKeys();
+
+    call_SR_API_DATE();
 }
 // #endregion
 
@@ -212,8 +226,8 @@ async function createSeasonArray()
 
         // call api function - wait specific amount of time based on # of api keys to avoid 403 error
         await new Promise(resolve => setTimeout(resolve, 500));
-        SR_API_CALL_ROTATOR();
         call_SR_API_GAMES();
+        apiCallRotator();
 
         // finally, decrease date by one day
         dateObj.setDate(dateObj.getDate() - 1);
@@ -224,25 +238,24 @@ async function createSeasonArray()
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     // filter by id to remove duplicate values
-    fullSeason = fullSeason.filter((value, index, self) => 
-    {
-        return self.findIndex(v => v.gameID === value.gameID) === index;
-    });
+    // fullSeason = fullSeason.filter((value, index, self) => 
+    // {
+    //     return self.findIndex(v => v.gameID === value.gameID) === index;
+    // });
 
-    // cycle through missing dates - get rest of data
-    for(let i = 0; i < missingDates.length; i++)
-    {
-        // format date for api call
-        dateStr = missingDates[i];
+    // // cycle through missing dates - get rest of data
+    // for(let i = 0; i < missingDates.length; i++)
+    // {
+    //     // format date for api call
+    //     dateStr = missingDates[i];
 
-        // call api function - wait specific amount of time based on # of api keys to avoid 403 error
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        SR_API_CALL_ROTATOR();
-        call_SR_API_GAMES();
-    }
+    //     // call api function - wait specific amount of time based on # of api keys to avoid 403 error
+    //     await new Promise(resolve => setTimeout(resolve, 1000));
+    //     call_SR_API_GAMES();
+    // }
 
-    // short timeout to get final bits of data
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // // short timeout to get final bits of data
+    // await new Promise(resolve => setTimeout(resolve, 5000));
 
     // filter by id to remove duplicate values
     fullSeason = fullSeason.filter((value, index, self) => 
@@ -365,26 +378,6 @@ async function callMLBAPI()
     }
 }
 
-async function call_SR_API_TEST()
-{
-    if(typeof config !== "undefined")
-    {
-        await SR_API_CALL_TEST()
-        .then((response) => call_Next_Test(response))
-        .catch((error) => call_Next_Test(error));
-    }
-    else
-    {
-        alert("Error: config.js file is missing.")
-    }
-}
-
-function call_Next_Test()
-{
-    SR_API_CALL_ROTATOR();
-    call_SR_API_TEST();
-}
-
 async function call_SR_API_DATE()
 {   
     if(typeof config !== "undefined")
@@ -403,8 +396,6 @@ function mlbAPIErrorDate(error)
 {
     if(error.status === 403)
     {
-        getAPIQuota(error.getResponseHeader("X-Plan-Quota-Current"), error.getResponseHeader("X-Final-Url"));
-        SR_API_CALL_ROTATOR();
         call_SR_API_DATE();
     }
     else
@@ -431,9 +422,8 @@ function mlbAPIErrorGames(error)
 {
     if(error.status === 403)
     {
-        var missingDate = error.finalUrl.substring(error.finalUrl.indexOf("games/") + 6, error.finalUrl.indexOf("/summary"));
-        missingDates.push(missingDate);
-        getAPIQuota(error.quota, error.finalUrl);
+        //var missingDate = error.finalUrl.substring(error.finalUrl.indexOf("games/") + 6, error.finalUrl.indexOf("/summary"));
+        //missingDates.push(missingDate);
     }
     else
     {
@@ -535,7 +525,7 @@ function SR_API_CALL()
             else if (this.readyState === 4 && this.status !== 200)
             {
                 // get amount of calls left, call function
-                getAPIQuota(xhr.getResponseHeader("X-Plan-Quota-Current"), xhr.getResponseHeader("X-Final-Url"));
+                getAPIQuota(1000, xhr.getResponseHeader("X-Final-Url"));
 
                 // return other error
                 reject({
@@ -565,16 +555,25 @@ function getAPIQuota(quota, apiUrl)
     // if quote is near 1000, remove key from key array
     if(quotaCurrent > 950)
     {
-        MLB_API_KEYS = MLB_API_KEYS.filter(key => key !== apiKey);
+        // add to bad key array
+        badAPIKeys.push(apiKey);
     }
 }
 
-function SR_API_CALL_ROTATOR()
+function removeBadKeys()
+{
+    badAPIKeys.forEach(function(badKey)
+    {
+        // remove bad key from api key array
+        MLB_API_KEYS = MLB_API_KEYS.filter(key => key !== badKey);
+    });
+}
+
+function apiCallRotator()
 {
     // increment api key index, or set to zero if reached end of array
-    var index = current_API_Index + 1;
-    current_API_Index = index >= MLB_API_KEYS.length ? 0 : index;
-    
+    current_API_Index = current_API_Index >= MLB_API_KEYS.length - 1 ? 0 : current_API_Index + 1;
+        
     // set current api key
     current_API_Key = MLB_API_KEYS[current_API_Index];
 }
