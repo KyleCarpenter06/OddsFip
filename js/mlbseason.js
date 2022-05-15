@@ -37,6 +37,7 @@ let MLB_Game = class
     static spreadFav = "N/A";
     static overUnder = "N/A";
 
+    static finalML;
     static finalSpread;
     static finalFavorite;
     static finalOverUnder;
@@ -144,9 +145,17 @@ let MLB_Team = class
 // #region INIT
 $(function()
 {
-    getAvailableKeys();
-    // get data from AWS - testing
-    //callJSON();
+    // get mlb season from dropdown
+    var selectedYear = $("#years").val();
+
+    if(selectedYear !== "2022")
+    {
+        callJSON();
+    }
+    else
+    {
+        getAvailableKeys();
+    }
 });
 
 async function getAvailableKeys()
@@ -199,7 +208,11 @@ function getSeasonDate(response)
         // for each game, add game id to array
         games.forEach(function(game)
         {
-            gameIDs.push(game.id);
+            var gameIDOBJ = new Object();
+            gameIDOBJ.id = game.id;
+            gameIDOBJ.game = game;
+            gameIDOBJ.found = false;
+            gameIDs.push(gameIDOBJ);
         });
 
         // create season array
@@ -262,6 +275,9 @@ async function createSeasonArray()
 
     // sort by date
     fullSeason = fullSeason.sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
+
+    // testing filter array if found is false
+    const missingGames = gameIDs.filter(obj => { return obj.found === false });
 }
 
 function getPlayerData(response)
@@ -275,11 +291,14 @@ function getPlayerData(response)
             // find game id to only include regular season games
             gameIDs.forEach(function(gameID)
             {
-                if(gameID === game.game.id)
+                if(gameID.id === game.game.id)
                 {
                     // if not all-star game and game is not listed as cancelled
-                    if(!(game.game.home.abbr === "NL" || game.game.away.abbr === "NL" || game.game.status === "canceled"))
+                    if(!(game.game.home.abbr === "NL" || game.game.away.abbr === "NL" || game.game.status === "canceled" || game.game.status === "unnecessary"))
                     {
+                        // set game id flag to found
+                        gameID.found = true;
+
                         var homeTeam = new MLB_Team();
                         var awayTeam = new MLB_Team();
                         var mlbGame = new MLB_Game(homeTeam, awayTeam);
@@ -342,35 +361,26 @@ function getPlayerData(response)
 // #region SEASON & BET JSON FUNCTIONS
 async function callJSON()
 {
+    // call mlb bet & game data from amazon
     await MLB_JSON_BET_CALL()
-    .then((response) => MLB_JSON_BET_RESP(response))
-    .catch((error) => MLB_JSON_ERROR(error));
-
-    // await MLB_JSON_SEASON_CALL()
-    // .then((response) => MLB_JSON_SEASON_RESP(response))
-    // .catch((error) => MLB_JSON_ERROR(error));
-}
-
-function MLB_JSON_BET_RESP(response)
-{
-    fullBets = response;
-}
-
-function MLB_JSON_SEASON_RESP(response)
-{
-    fullSeason = response;
-}
-
-function MLB_JSON_ERROR(error)
-{
-    alert("Error " + error.status + ": " + error.statusText);
+    .then(function(response)
+    {
+        fullBets = response;
+        return MLB_JSON_SEASON_CALL();
+    })
+    .then(function(response)
+    {
+        fullSeason = response;
+        mergeMLBData();
+    })
+    .catch((error) => alert("Error " + error.status + ": " + error.statusText));
 }
 
 function MLB_JSON_BET_CALL()
 {
     return new Promise(function(resolve, reject)
     {
-        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_bets_2021.json")
+        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_bets_" + $("#years").val() + ".json")
         .done(resolve)
         .fail(reject);
     });
@@ -380,12 +390,33 @@ function MLB_JSON_SEASON_CALL()
 {
     return new Promise(function(resolve, reject)
     {
-        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_season_2021.json")
+        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_season_" + $("#years").val() + ".json")
         .done(resolve)
         .fail(reject);
     });
 }
+// #endregion
 
+// #region COMPILE BET FUNCTIONS
+function mergeMLBData()
+{
+    fullSeason.forEach(function(game)
+    {
+        // convert mlb game date into bet date
+        var date = new Date(game.gameDate);
+        var shortDate = (date.getMonth() + 1).toString() + ((date.getDate() > 9) ? date.getDate() : ('0' + date.getDate())).toString();
+
+        for(let i = 0; i < fullBets.length; i++)
+        {
+            // if date and team match
+            if(shortDate === fullBets[i].Date && (game.homeTeam.abbv === fullBets[i].Team || game.awayTeam.abbv === fullBets[i].Team))
+            {
+                game.finalOverUnder = fullBets[i].CloseOU;
+                break;
+            }
+        }
+    });
+}
 // #endregion
 
 // #region MLB API FUNCTIONS
