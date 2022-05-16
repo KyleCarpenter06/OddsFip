@@ -37,7 +37,8 @@ let MLB_Game = class
     static spreadFav = "N/A";
     static overUnder = "N/A";
 
-    static finalML;
+    static finalHomeML;
+    static finalAwayML;
     static finalSpread;
     static finalFavorite;
     static finalOverUnder;
@@ -406,15 +407,250 @@ function mergeMLBData()
         var date = new Date(game.gameDate);
         var shortDate = (date.getMonth() + 1).toString() + ((date.getDate() > 9) ? date.getDate() : ('0' + date.getDate())).toString();
 
-        for(let i = 0; i < fullBets.length; i++)
+        for(let i = 0; i < fullBets.length; i+=2)
         {
             // if date and team match
             if(shortDate === fullBets[i].Date && (game.homeTeam.abbv === fullBets[i].Team || game.awayTeam.abbv === fullBets[i].Team))
             {
-                game.finalOverUnder = fullBets[i].CloseOU;
+                game.finalOverUnder = parseFloat(fullBets[i].CloseOU);
+                game.finalHomeML = game.homeTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].Close) : parseFloat(fullBets[i + 1].Close);
+                game.finalAwayML = game.awayTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].Close) : parseFloat(fullBets[i + 1].Close);
+
+                var homeRunLine = game.homeTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].RunLine) : parseFloat(fullBets[i + 1].RunLine);
+                var awayRunLine = game.awayTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].RunLine) : parseFloat(fullBets[i + 1].RunLine);
+
+                game.finalFavorite = homeRunLine < awayRunLine ? game.homeTeam.abbv : game.awayTeam.abbv;
+                game.finalSpread = homeRunLine < awayRunLine ? homeRunLine : awayRunLine;
+
                 break;
             }
         }
+    });
+
+    compileMLBData();
+}
+
+function compileMLBData()
+{
+    // iterate over each game
+    fullSeason.forEach(function(game)
+    {
+        // get date before current game date
+        var filterDate = new Date(game.gameDate);
+        filterDate.setDate(filterDate.getDate() - 1);
+        
+        // get home and away team games - full season
+        var homeFull = fullSeason.filter(obj => { return (obj.homeTeam.abbv === game.homeTeam.abbv && new Date(obj.gameDate) < new Date(game.gameDate)) || (obj.awayTeam.abbv === game.homeTeam.abbv && new Date(obj.gameDate) < new Date(game.gameDate))});
+        var awayFull = fullSeason.filter(obj => { return (obj.homeTeam.abbv === game.awayTeam.abbv && new Date(obj.gameDate) < new Date(game.gameDate)) || (obj.awayTeam.abbv === game.awayTeam.abbv && new Date(obj.gameDate) < new Date(game.gameDate))});
+
+        // get home and away team games - adjusted based on record
+        var homeAdj = game.awayTeam.record < 0.5 ? homeFull.filter(obj => { return obj.homeTeam.abbv === game.homeTeam.abbv ? obj.awayTeam.record < 0.5 : obj.homeTeam.record < 0.5 }) : homeFull.filter(obj => { return obj.homeTeam.abbv === game.homeTeam.abbv ? obj.awayTeam.record >= 0.5 : obj.homeTeam.record >= 0.5 });
+        var awayAdj = game.homeTeam.record < 0.5 ? awayFull.filter(obj => { return obj.homeTeam.abbv === game.awayTeam.abbv ? obj.awayTeam.record < 0.5 : obj.homeTeam.record < 0.5 }) : awayFull.filter(obj => { return obj.homeTeam.abbv === game.awayTeam.abbv ? obj.awayTeam.record >= 0.5 : obj.homeTeam.record >= 0.5 });
+
+        // --- offensive numbers
+
+        // last game - full
+        if(homeFull.length >= 1 && awayFull.length >= 1)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 1; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeFull[i].homeTeam.abbv ? homeFull[i].homeTeam.score : homeFull[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayFull[i].homeTeam.abbv ? awayFull[i].homeTeam.score : awayFull[i].awayTeam.score;
+            }
+            game.homeTeam.l1_full = Math.round(homeScoreTot / 1);
+            game.awayTeam.l1_full = Math.round(awayScoreTot / 1);
+        }
+        else { game.homeTeam.l1_full = game.awayTeam.l1_full = null; }
+
+        // last game - adj
+        if(homeAdj.length >= 1 && awayAdj.length >= 1)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 1; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeAdj[i].homeTeam.abbv ? homeAdj[i].homeTeam.score : homeAdj[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayAdj[i].homeTeam.abbv ? awayAdj[i].homeTeam.score : awayAdj[i].awayTeam.score;
+            }
+            game.homeTeam.l1_adj = Math.round(homeScoreTot / 1);
+            game.awayTeam.l1_adj = Math.round(awayScoreTot / 1);
+        }
+        else { game.homeTeam.l1_adj = game.awayTeam.l1_adj = null; }
+
+        // last 3 games - full
+        if(homeFull.length >= 3 && awayFull.length >= 3)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 3; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeFull[i].homeTeam.abbv ? homeFull[i].homeTeam.score : homeFull[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayFull[i].homeTeam.abbv ? awayFull[i].homeTeam.score : awayFull[i].awayTeam.score;
+            }
+            game.homeTeam.l3_full = Math.round(homeScoreTot / 3);
+            game.awayTeam.l3_full = Math.round(awayScoreTot / 3);
+        }
+        else { game.homeTeam.l3_full = game.awayTeam.l3_full = null; }
+
+        // last 3 games - adj
+        if(homeAdj.length >= 3 && awayAdj.length >= 3)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 3; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeAdj[i].homeTeam.abbv ? homeAdj[i].homeTeam.score : homeAdj[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayAdj[i].homeTeam.abbv ? awayAdj[i].homeTeam.score : awayAdj[i].awayTeam.score;
+            }
+            game.homeTeam.l3_adj = Math.round(homeScoreTot / 3);
+            game.awayTeam.l3_adj = Math.round(awayScoreTot / 3);
+        }
+        else { game.homeTeam.l3_adj = game.awayTeam.l3_adj = null; }
+
+        // last 5 games - full
+        if(homeFull.length >= 5 && awayFull.length >= 5)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 5; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeFull[i].homeTeam.abbv ? homeFull[i].homeTeam.score : homeFull[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayFull[i].homeTeam.abbv ? awayFull[i].homeTeam.score : awayFull[i].awayTeam.score;
+            }
+            game.homeTeam.l5_full = Math.round(homeScoreTot / 5);
+            game.awayTeam.l5_full = Math.round(awayScoreTot / 5);
+        }
+        else { game.homeTeam.l5_full = game.awayTeam.l5_full = null; }
+
+        // last 5 games - adj
+        if(homeAdj.length >= 5 && awayAdj.length >= 5)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 5; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeAdj[i].homeTeam.abbv ? homeAdj[i].homeTeam.score : homeAdj[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayAdj[i].homeTeam.abbv ? awayAdj[i].homeTeam.score : awayAdj[i].awayTeam.score;
+            }
+            game.homeTeam.l5_adj = Math.round(homeScoreTot / 5);
+            game.awayTeam.l5_adj = Math.round(awayScoreTot / 5);
+        }
+        else { game.homeTeam.l5_adj = game.awayTeam.l5_adj = null; }
+
+        // last 10 games - full
+        if(homeFull.length >= 10 && awayFull.length >= 10)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 10; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeFull[i].homeTeam.abbv ? homeFull[i].homeTeam.score : homeFull[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayFull[i].homeTeam.abbv ? awayFull[i].homeTeam.score : awayFull[i].awayTeam.score;
+            }
+            game.homeTeam.l10_full = Math.round(homeScoreTot / 10);
+            game.awayTeam.l10_full = Math.round(awayScoreTot / 10);
+        }
+        else { game.homeTeam.l5_full = game.awayTeam.l5_full = null; }
+
+        // last 10 games - adj
+        if(homeAdj.length >= 10 && awayAdj.length >= 10)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            for(let i = 0; i < 10; i++)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeAdj[i].homeTeam.abbv ? homeAdj[i].homeTeam.score : homeAdj[i].awayTeam.score;
+                awayScoreTot += game.awayTeam.abbv === awayAdj[i].homeTeam.abbv ? awayAdj[i].homeTeam.score : awayAdj[i].awayTeam.score;
+            }
+            game.homeTeam.l10_adj = Math.round(homeScoreTot / 10);
+            game.awayTeam.l10_adj = Math.round(awayScoreTot / 10);
+        }
+        else { game.homeTeam.l10_adj = game.awayTeam.l10_adj = null; }
+
+        // home/away - full
+        if(homeFull.length >= 0 && awayFull.length >= 0)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0, homeCounter = 0, awayCounter = 0;
+            homeFull.forEach(function(homeGame)
+            {
+                if(game.homeTeam.abbv === homeGame.homeTeam.abbv)
+                {
+                    homeScoreTot += homeGame.homeTeam.score;
+                    homeCounter++;
+                }
+            });
+
+            awayFull.forEach(function(awayGame)
+            {
+                if(game.awayTeam.abbv === awayGame.awayTeam.abbv)
+                {
+                    awayScoreTot += awayGame.awayTeam.score;
+                    awayCounter++;
+                }
+            });
+
+            game.homeTeam.ha_full = Math.round(homeScoreTot / homeCounter);
+            game.awayTeam.ha_full = Math.round(awayScoreTot / awayCounter);
+        }
+        else { game.homeTeam.ha_full = game.awayTeam.ha_full = null; }
+
+        // home/away - adj
+        if(homeAdj.length >= 0 && awayAdj.length >= 0)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0, homeCounter = 0, awayCounter = 0;
+            homeAdj.forEach(function(homeGame)
+            {
+                if(game.homeTeam.abbv === homeGame.homeTeam.abbv)
+                {
+                    homeScoreTot += homeGame.homeTeam.score;
+                    homeCounter++;
+                }
+            });
+
+            awayAdj.forEach(function(awayGame)
+            {
+                if(game.awayTeam.abbv === awayGame.awayTeam.abbv)
+                {
+                    awayScoreTot += awayGame.awayTeam.score;
+                    awayCounter++;
+                }
+            });
+
+            game.homeTeam.ha_adj = Math.round(homeScoreTot / homeCounter);
+            game.awayTeam.ha_adj = Math.round(awayScoreTot / awayCounter);
+        }
+        else { game.homeTeam.ha_adj = game.awayTeam.ha_adj = null; }
+
+        // season - full
+        if(homeFull.length >= 0 && awayFull.length >= 0)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            homeFull.forEach(function(homeGame)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeGame.homeTeam.abbv ? homeGame.homeTeam.score : homeGame.awayTeam.score;
+            });
+            awayFull.forEach(function(awayGame)
+            {
+                awayScoreTot += game.awayTeam.abbv === awayGame.homeTeam.abbv ? awayGame.homeTeam.score : awayGame.awayTeam.score;
+            });
+
+            game.homeTeam.sn_full = Math.round(homeScoreTot / homeFull.length);
+            game.awayTeam.sn_full = Math.round(awayScoreTot / awayFull.length);
+        }
+        else { game.homeTeam.sn_full = game.awayTeam.sn_full = null; }
+
+        // season - adj
+        if(homeAdj.length >= 0 && awayAdj.length >= 0)
+        {
+            var homeScoreTot = 0, awayScoreTot = 0;
+            homeAdj.forEach(function(homeGame)
+            {
+                homeScoreTot += game.homeTeam.abbv === homeGame.homeTeam.abbv ? homeGame.homeTeam.score : homeGame.awayTeam.score;
+            });
+            awayAdj.forEach(function(awayGame)
+            {
+                awayScoreTot += game.awayTeam.abbv === awayGame.homeTeam.abbv ? awayGame.homeTeam.score : awayGame.awayTeam.score;
+            });
+
+            game.homeTeam.sn_adj = Math.round(homeScoreTot / homeAdj.length);
+            game.awayTeam.sn_adj = Math.round(awayScoreTot / awayAdj.length);
+        }
+        else { game.homeTeam.sn_adj = game.awayTeam.sn_adj = null; }
+
     });
 }
 // #endregion
