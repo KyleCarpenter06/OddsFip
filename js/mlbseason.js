@@ -116,10 +116,11 @@ let MLB_Team = class
     static stPitcherName;
     static stPitcherIP;
     static stPitcherRA;
-    static stPitcherERA;
     static bullpenIP;
     static bullpenRA;
-    static bullpenERA;
+
+    static era_full;
+    static era_adj;
 
     static l1_full; // last game
     static l3_full; // last 3 game average
@@ -447,7 +448,115 @@ function compileMLBData()
         var homeAdj = game.awayTeam.record < 0.5 ? homeFull.filter(obj => { return obj.homeTeam.abbv === game.homeTeam.abbv ? obj.awayTeam.record < 0.5 : obj.homeTeam.record < 0.5 }) : homeFull.filter(obj => { return obj.homeTeam.abbv === game.homeTeam.abbv ? obj.awayTeam.record >= 0.5 : obj.homeTeam.record >= 0.5 });
         var awayAdj = game.homeTeam.record < 0.5 ? awayFull.filter(obj => { return obj.homeTeam.abbv === game.awayTeam.abbv ? obj.awayTeam.record < 0.5 : obj.homeTeam.record < 0.5 }) : awayFull.filter(obj => { return obj.homeTeam.abbv === game.awayTeam.abbv ? obj.awayTeam.record >= 0.5 : obj.homeTeam.record >= 0.5 });
 
-        // --- offensive numbers
+        // get home and away pitching
+        var homeSTFullERA = 0, awaySTFullERA = 0, homeSTAdjERA = 0, awaySTAdjERA = 0, homeSTFullIP = 0, awaySTFullIP = 0, homeSTAdjIP = 0, awaySTAdjIP = 0, homeSTFullRA = 0, awaySTFullRA = 0, homeSTAdjRA = 0, awaySTAdjRA = 0;
+        var homeBPFullERA = 0, awayBPFullERA = 0, homeBPAdjERA = 0, awayBPAdjERA = 0, homeBPFullIP = 0, awayBPFullIP = 0, homeBPAdjIP = 0, awayBPAdjIP = 0, homeBPFullRA = 0, awayBPFullRA = 0, homeBPAdjRA = 0, awayBPAdjRA = 0;
+        var homeFullERA = 0, awayFullERA = 0, homeAdjERA = 0, awayAdjERA = 0;
+        var homeSTFullGP = 0, awaySTFullGP = 0, homeSTAdjGP = 0, awaySTAdjGP = 0, homeSTFullAIP = 0, awaySTFullAIP = 0, homeSTAdjAIP = 0, awaySTAdjAIP = 0;
+        
+        // home full pitching
+        homeFull.forEach(function(mlbGame)
+        {
+            // if game matches team
+            if(mlbGame.homeTeam.abbv === game.homeTeam.abbv || mlbGame.awayTeam.abbv === game.homeTeam.abbv)
+            {
+                // if game has starting pitcher of current game
+                if(mlbGame.homeTeam.stPitcherName === game.homeTeam.stPitcherName || mlbGame.awayTeam.stPitcherName === game.homeTeam.stPitcherName)
+                {
+                    homeSTFullIP += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.stPitcherIP : mlbGame.awayTeam.stPitcherIP;
+                    homeSTFullRA += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.stPitcherRA : mlbGame.awayTeam.stPitcherRA;
+                    homeSTFullGP++;
+                }
+                homeBPFullIP += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.bullpenIP : mlbGame.awayTeam.bullpenIP;
+                homeBPFullRA += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.bullpenRA : mlbGame.awayTeam.bullpenRA;
+            }
+        });
+        if(homeSTFullIP >= 20)
+        {
+            homeSTFullAIP = homeSTFullIP / homeSTFullGP;
+            homeSTFullERA = (homeSTFullRA * homeSTFullAIP) / homeSTFullIP;
+            homeBPFullERA = (homeBPFullRA * (9 - homeSTFullAIP)) / homeBPFullIP;
+            game.homeTeam.era_full = homeSTFullERA + homeBPFullERA;
+        }
+        else{ game.homeTeam.era_full = null }
+
+        // home adj pitching
+        homeAdj.forEach(function(mlbGame)
+        {
+            // if game matches team
+            if(mlbGame.homeTeam.abbv === game.homeTeam.abbv || mlbGame.awayTeam.abbv === game.homeTeam.abbv)
+            {
+                // if game has starting pitcher of current game
+                if(mlbGame.homeTeam.stPitcherName === game.homeTeam.stPitcherName || mlbGame.awayTeam.stPitcherName === game.homeTeam.stPitcherName)
+                {
+                    homeSTAdjIP += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.stPitcherIP : mlbGame.awayTeam.stPitcherIP;
+                    homeSTAdjRA += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.stPitcherRA : mlbGame.awayTeam.stPitcherRA;
+                    homeSTAdjGP++;
+                }
+                homeBPAdjIP += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.bullpenIP : mlbGame.awayTeam.bullpenIP;
+                homeBPAdjRA += mlbGame.homeTeam.abbv === game.homeTeam.abbv ? mlbGame.homeTeam.bullpenRA : mlbGame.awayTeam.bullpenRA;
+            }
+        });
+        if(homeSTAdjIP >= 20)
+        {
+            homeSTAdjAIP = homeSTAdjIP / homeSTAdjGP;
+            homeSTAdjERA = (homeSTAdjRA * homeSTAdjAIP) / homeSTAdjIP;
+            homeBPAdjERA = (homeBPAdjRA * (9 - homeSTAdjAIP)) / homeBPAdjIP;
+            game.homeTeam.era_adj = homeSTAdjERA + homeBPAdjERA;
+        }
+        else{ game.homeTeam.era_adj = null }
+
+        // away full pitching
+        awayFull.forEach(function(mlbGame)
+        {
+            // if game matches team
+            if(mlbGame.homeTeam.abbv === game.awayTeam.abbv || mlbGame.awayTeam.abbv === game.awayTeam.abbv)
+            {
+                // if game has starting pitcher of current game
+                if(mlbGame.homeTeam.stPitcherName === game.awayTeam.stPitcherName || mlbGame.awayTeam.stPitcherName === game.awayTeam.stPitcherName)
+                {
+                    awaySTFullIP += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.stPitcherIP : mlbGame.awayTeam.stPitcherIP;
+                    awaySTFullRA += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.stPitcherRA : mlbGame.awayTeam.stPitcherRA;
+                    awaySTFullGP++;
+                }
+                awayBPFullIP += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.bullpenIP : mlbGame.awayTeam.bullpenIP;
+                awayBPFullRA += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.bullpenRA : mlbGame.awayTeam.bullpenRA;
+            }
+        });
+        if(awaySTFullIP >= 20)
+        {
+            awaySTFullAIP = awaySTFullIP / awaySTFullGP;
+            awaySTFullERA = (awaySTFullRA * awaySTFullAIP) / awaySTFullIP;
+            awayBPFullERA = (awayBPFullRA * (9 - awaySTFullAIP)) / awayBPFullIP;
+            game.awayTeam.era_full = awaySTFullERA + awayBPFullERA;
+        }
+        else{ game.awayTeam.era_full = null }
+
+        // away adj pitching
+        awayAdj.forEach(function(mlbGame)
+        {
+            // if game matches team
+            if(mlbGame.homeTeam.abbv === game.awayTeam.abbv || mlbGame.awayTeam.abbv === game.awayTeam.abbv)
+            {
+                // if game has starting pitcher of current game
+                if(mlbGame.homeTeam.stPitcherName === game.awayTeam.stPitcherName || mlbGame.awayTeam.stPitcherName === game.awayTeam.stPitcherName)
+                {
+                    awaySTAdjIP += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.stPitcherIP : mlbGame.awayTeam.stPitcherIP;
+                    awaySTAdjRA += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.stPitcherRA : mlbGame.awayTeam.stPitcherRA;
+                    awaySTAdjGP++;
+                }
+                awayBPAdjIP += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.bullpenIP : mlbGame.awayTeam.bullpenIP;
+                awayBPAdjRA += mlbGame.homeTeam.abbv === game.awayTeam.abbv ? mlbGame.homeTeam.bullpenRA : mlbGame.awayTeam.bullpenRA;
+            }
+        });
+        if(awaySTAdjIP >= 20)
+        {
+            awaySTAdjAIP = awaySTAdjIP / awaySTAdjGP;
+            awaySTAdjERA = (awaySTAdjRA * awaySTAdjAIP) / awaySTAdjIP;
+            awayBPAdjERA = (awayBPAdjRA * (9 - awaySTAdjAIP)) /awayBPAdjIP;
+            game.awayTeam.era_adj = awaySTAdjERA + awayBPAdjERA;
+        }
+        else{ game.awayTeam.era_adj = null }
 
         // last game - full
         if(homeFull.length >= 1 && awayFull.length >= 1)
@@ -562,7 +671,7 @@ function compileMLBData()
         else { game.homeTeam.l10_adj = game.awayTeam.l10_adj = null; }
 
         // home/away - full
-        if(homeFull.length >= 0 && awayFull.length >= 0)
+        if(homeFull.length > 0 && awayFull.length > 0)
         {
             var homeScoreTot = 0, awayScoreTot = 0, homeCounter = 0, awayCounter = 0;
             homeFull.forEach(function(homeGame)
@@ -589,7 +698,7 @@ function compileMLBData()
         else { game.homeTeam.ha_full = game.awayTeam.ha_full = null; }
 
         // home/away - adj
-        if(homeAdj.length >= 0 && awayAdj.length >= 0)
+        if(homeAdj.length > 0 && awayAdj.length > 0)
         {
             var homeScoreTot = 0, awayScoreTot = 0, homeCounter = 0, awayCounter = 0;
             homeAdj.forEach(function(homeGame)
@@ -616,7 +725,7 @@ function compileMLBData()
         else { game.homeTeam.ha_adj = game.awayTeam.ha_adj = null; }
 
         // season - full
-        if(homeFull.length >= 0 && awayFull.length >= 0)
+        if(homeFull.length > 0 && awayFull.length > 0)
         {
             var homeScoreTot = 0, awayScoreTot = 0;
             homeFull.forEach(function(homeGame)
@@ -634,7 +743,7 @@ function compileMLBData()
         else { game.homeTeam.sn_full = game.awayTeam.sn_full = null; }
 
         // season - adj
-        if(homeAdj.length >= 0 && awayAdj.length >= 0)
+        if(homeAdj.length > 0 && awayAdj.length > 0)
         {
             var homeScoreTot = 0, awayScoreTot = 0;
             homeAdj.forEach(function(homeGame)
@@ -651,6 +760,139 @@ function compileMLBData()
         }
         else { game.homeTeam.sn_adj = game.awayTeam.sn_adj = null; }
 
+        // weighted scores
+        if(game.homeTeam.l1_full === null || awayFull.length === null)
+        {
+            game.homeTeam.wm_full = game.homeTeam.wm_adj = game.awayTeam.wm_full = game.awayTeam.wm_adj = null;
+            game.homeTeam.ws_full = game.homeTeam.ws_adj = game.awayTeam.ws_full = game.awayTeam.ws_adj = null;
+        }
+        else
+        {
+            // set variables
+            var l1_Full_Wm, l3_Full_Wm, l5_Full_Wm, l10_Full_Wm, sn_Full_Wm, ha_Full_Wm;
+            var l1_Adj_Wm, l3_Adj_Wm, l5_Adj_Wm, l10_Adj_Wm, sn_Adj_Wm, ha_Adj_Wm;
+            var l1_Full_Ws, l3_Full_Ws, l5_Full_Ws, l10_Full_Ws, sn_Full_Ws, ha_Full_Ws;
+            var l1_Adj_Ws, l3_Adj_Ws, l5_Adj_Ws, l10_Adj_Ws, sn_Adj_Ws, ha_Adj_Ws;
+
+            // set initial weights
+            // momentum weights - season 5%, home/away 15%, last 10 10%, last 5 %15, last 3 20%, last 1 35%
+            // season weights - season 35%, home/away 15%, last 10 20%, last 5 %15, last 3 10%, last 1 5%
+            l1_Full_Wm = l1_Adj_Wm = sn_Full_Ws = sn_Adj_Ws = .35;
+            l3_Full_Wm = l3_Adj_Wm = l10_Full_Ws = l10_Adj_Ws = .2;
+            l5_Full_Wm = l5_Adj_Wm = l5_Full_Ws = l5_Adj_Ws = .15;
+            ha_Full_Wm = ha_Adj_Wm = ha_Full_Ws = ha_Adj_Ws = .15;
+            l10_Full_Wm = l10_Adj_Wm = l3_Full_Ws = l3_Adj_Ws = .1;
+            sn_Full_Wm = sn_Adj_Wm = l1_Full_Ws = l1_Adj_Ws = .05;
+
+            // final weights, full 35%, adjusted 65%
+            var full_Wt = .35;
+            var adj_Wt = .65;
+
+            // if stats missing, remove from weighted equation
+            if(game.homeTeam.l10_adj === null || game.awayTeam.l10_adj === null)
+            {
+                l10_Adj_Wm = l10_Adj_Ws = 0;
+            }
+
+            if(game.homeTeam.l10_full === null || game.awayTeam.l10_full === null)
+            {
+                l10_Full_Wm = l10_Full_Ws = 0;
+            }
+
+            if(game.homeTeam.l5_adj === null || game.awayTeam.l5_adj === null)
+            {
+                l5_Adj_Wm = l5_Adj_Ws = 0;
+            }
+
+            if(game.homeTeam.l5_full === null || game.awayTeam.l5_full === null)
+            {
+                l5_Full_Wm = l5_Full_Ws = 0;
+            }
+
+            if(game.homeTeam.l3_adj === null || game.awayTeam.l3_adj === null)
+            {
+                l3_Adj_Wm = l3_Adj_Ws = 0;
+            }
+
+            if(game.homeTeam.l3_full === null || game.awayTeam.l3_full === null)
+            {
+                l3_Full_Wm = l3_Full_Ws = 0;
+            }
+
+            if(game.homeTeam.l1_adj === null || game.awayTeam.l1_adj === null)
+            {
+                l1_Adj_Wm = l1_Adj_Ws = 0;
+            }
+
+            if(game.homeTeam.sn_adj === null || game.awayTeam.sn_adj === null)
+            {
+                sn_Adj_Wm = sn_Adj_Ws = 0;
+            }
+
+            if(game.homeTeam.sn_full === null || game.awayTeam.sn_full === null)
+            {
+                sn_Full_Wm = sn_Full_Ws = 0;
+            }
+
+            if(game.homeTeam.ha_adj === null || game.awayTeam.ha_adj === null)
+            {
+                ha_Adj_Wm = ha_Adj_Ws = 0;
+            }
+
+            if(game.homeTeam.ha_full === null || game.awayTeam.ha_full === null)
+            {
+                ha_Full_Wm = ha_Full_Ws = 0;
+            }
+
+            // get multiplier for total weight missing
+            var full_multi = l1_Full_Wm + l3_Full_Wm + l5_Full_Wm + l10_Full_Wm + sn_Full_Wm + ha_Full_Wm;
+            var adj_multi = l1_Adj_Wm + l3_Adj_Wm + l5_Adj_Wm + l10_Adj_Wm + sn_Adj_Wm + ha_Adj_Wm;
+
+            var wm_Home_Full = (game.homeTeam.sn_full * sn_Full_Wm) + (game.homeTeam.ha_full * ha_Full_Wm) + (game.homeTeam.l10_full * l10_Full_Wm) + (game.homeTeam.l5_full * l5_Full_Wm) + (game.homeTeam.l3_full * l3_Full_Wm) + (game.homeTeam.l1_full * l1_Full_Wm);
+            var wm_Home_Adj = (game.homeTeam.sn_adj * sn_Adj_Wm) + (game.homeTeam.ha_adj * ha_Adj_Wm) + (game.homeTeam.l10_adj * l10_Adj_Wm) + (game.homeTeam.l5_adj * l5_Adj_Wm) + (game.homeTeam.l3_adj * l3_Adj_Wm) + (game.homeTeam.l1_adj * l1_Adj_Wm);
+            var wm_Away_Full = (game.awayTeam.sn_full * sn_Full_Wm) + (game.awayTeam.ha_full * ha_Full_Wm) + (game.awayTeam.l10_full * l10_Full_Wm) + (game.awayTeam.l5_full * l5_Full_Wm) + (game.awayTeam.l3_full * l3_Full_Wm) + (game.awayTeam.l1_full * l1_Full_Wm);
+            var wm_Away_Adj = (game.awayTeam.sn_adj * sn_Adj_Wm) + (game.awayTeam.ha_adj * ha_Adj_Wm) + (game.awayTeam.l10_adj * l10_Adj_Wm) + (game.awayTeam.l5_adj * l5_Adj_Wm) + (game.awayTeam.l3_adj * l3_Adj_Wm) + (game.awayTeam.l1_adj * l1_Adj_Wm);
+
+            var ws_Home_Full = (game.homeTeam.sn_full * sn_Full_Ws) + (game.homeTeam.ha_full * ha_Full_Ws) + (game.homeTeam.l10_full * l10_Full_Ws) + (game.homeTeam.l5_full * l5_Full_Ws) + (game.homeTeam.l3_full * l3_Full_Ws) + (game.homeTeam.l1_full * l1_Full_Ws);
+            var ws_Home_Adj = (game.homeTeam.sn_adj * sn_Adj_Ws) + (game.homeTeam.ha_adj * ha_Adj_Ws) + (game.homeTeam.l10_adj * l10_Adj_Ws) + (game.homeTeam.l5_adj * l5_Adj_Ws) + (game.homeTeam.l3_adj * l3_Adj_Ws) + (game.homeTeam.l1_adj * l1_Adj_Ws);
+            var ws_Away_Full = (game.awayTeam.sn_full * sn_Full_Ws) + (game.awayTeam.ha_full * ha_Full_Ws) + (game.awayTeam.l10_full * l10_Full_Ws) + (game.awayTeam.l5_full * l5_Full_Ws) + (game.awayTeam.l3_full * l3_Full_Ws) + (game.awayTeam.l1_full * l1_Full_Ws);
+            var ws_Away_Adj = (game.awayTeam.sn_adj * sn_Adj_Ws) + (game.awayTeam.ha_adj * ha_Adj_Ws) + (game.awayTeam.l10_adj * l10_Adj_Ws) + (game.awayTeam.l5_adj * l5_Adj_Ws) + (game.awayTeam.l3_adj * l3_Adj_Ws) + (game.awayTeam.l1_adj * l1_Adj_Ws);
+        
+            // adjust weighted score based on missing weights, if any
+            game.homeTeam.wm_full = Math.round(wm_Home_Full/full_multi);
+            game.homeTeam.ws_full = Math.round(ws_Home_Full/full_multi);
+            game.awayTeam.wm_full = Math.round(wm_Away_Full/full_multi);
+            game.awayTeam.ws_full = Math.round(ws_Away_Full/full_multi);
+
+            // calculate average score from two weights
+            var final_Home_Full = (game.homeTeam.wm_full + game.homeTeam.ws_full) / 2;
+            var final_Away_Full = (game.awayTeam.wm_full + game.awayTeam.ws_full) / 2;
+
+            if(adj_multi !== 0)
+            {
+                // adjust weighted score based on missing weights, if any
+                game.homeTeam.wm_adj = Math.round(wm_Home_Adj/adj_multi);
+                game.homeTeam.ws_adj = Math.round(ws_Home_Adj/adj_multi);
+                game.awayTeam.wm_adj = Math.round(wm_Away_Adj/adj_multi);
+                game.awayTeam.ws_adj = Math.round(ws_Away_Adj/adj_multi);
+
+                // calculate average score from two weights
+                var final_Home_Adj = (game.homeTeam.wm_adj + game.homeTeam.ws_adj) / 2;
+                var final_Away_Adj = (game.awayTeam.wm_adj + game.awayTeam.ws_adj) / 2;
+
+                // weighted final decision more on adjusted than full (70/30)
+                var final_Home = (final_Home_Full * full_Wt) + (final_Home_Adj * adj_Wt);
+                var final_Away = (final_Away_Full * full_Wt) + (final_Away_Adj * adj_Wt);
+                game.homeTeam.final = Math.round(final_Home);
+                game.awayTeam.final = Math.round(final_Away);
+            }
+            else
+            {
+                game.homeTeam.wm_adj = game.homeTeam.ws_adj = game.awayTeam.wm_adj = game.awayTeam.ws_adj = 0;
+                game.homeTeam.final = Math.round(final_Home_Full);
+                game.awayTeam.final = Math.round(final_Away_Full);
+            }
+        }
     });
 }
 // #endregion
