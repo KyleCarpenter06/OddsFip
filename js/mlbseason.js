@@ -33,16 +33,65 @@ let MLB_Game = class
 
     static gameDate;
     static gameID;
+    static betData;
+    static betOdds;
+    static betPicks;
+}
 
-    static spreadFav = "N/A";
-    static overUnder = "N/A";
+let MLB_Team = class
+{
+    static teamName;
+    static teamFullName;
+    static abbv;
+    static id;
+    static location;
+    static record;
+    static score;
+    static stPitcherName;
+    static stPitcherIP;
+    static stPitcherRA;
+    static stPitcherTIP_Full;
+    static stPitcherTIP_Adj;
+    static bullpenIP;
+    static bullpenRA;
+    static bullpenTIP_Full;
+    static bullpenTIP_Adj;
 
+    static era_full;
+    static era_adj;
+
+    static l1_full; // last game
+    static l3_full; // last 3 game average
+    static l5_full; // last 5 game average
+    static l10_full; // last 10 game average
+    static sn_full; // full season average
+    static ha_full; // home/away average
+    static wm_full; // weighted momentum
+    static ws_full; // weighted season
+
+    static l1_adj; // last game
+    static l3_adj; // last 3 game average
+    static l5_adj; // last 5 game average
+    static l10_adj; // last 10 game average
+    static sn_adj; // full season average
+    static ha_adj; // home/away average
+    static wm_adj; // weighted momentum
+    static ws_adj; // weighted season
+
+    static final; // final outcome based on average of weights
+}
+
+let BetOdds = class
+{
     static finalHomeML;
     static finalAwayML;
     static finalSpread;
     static finalFavorite;
     static finalOverUnder;
+}
 
+let BetData = class
+{
     static spl1_full;
     static spl3_full;
     static spl5_full;
@@ -102,49 +151,6 @@ let MLB_Game = class
     static ouws_adj;
 
     static oufinal;
-}
-
-let MLB_Team = class
-{
-    static teamName;
-    static teamFullName;
-    static abbv;
-    static id;
-    static location;
-    static record;
-    static score;
-    static stPitcherName;
-    static stPitcherIP;
-    static stPitcherRA;
-    static stPitcherTIP_Full;
-    static stPitcherTIP_Adj;
-    static bullpenIP;
-    static bullpenRA;
-    static bullpenTIP_Full;
-    static bullpenTIP_Adj;
-
-    static era_full;
-    static era_adj;
-
-    static l1_full; // last game
-    static l3_full; // last 3 game average
-    static l5_full; // last 5 game average
-    static l10_full; // last 10 game average
-    static sn_full; // full season average
-    static ha_full; // home/away average
-    static wm_full; // weighted momentum
-    static ws_full; // weighted season
-
-    static l1_adj; // last game
-    static l3_adj; // last 3 game average
-    static l5_adj; // last 5 game average
-    static l10_adj; // last 10 game average
-    static sn_adj; // full season average
-    static ha_adj; // home/away average
-    static wm_adj; // weighted momentum
-    static ws_adj; // weighted season
-
-    static final; // final outcome based on average of weights
 }
 // #endregion
 
@@ -321,8 +327,8 @@ function getPlayerData(response)
                         homeTeam.record = game.game.home.win / (game.game.home.win + game.game.home.loss);
                         awayTeam.record = game.game.away.win / (game.game.away.win + game.game.away.loss);
 
-                        homeTeam.score = game.game.home.runs;
-                        awayTeam.score = game.game.away.runs;
+                        mlbGame.homeTeam.score = game.game.home.runs;
+                        mlbGame.awayTeam.score = game.game.away.runs;
 
                         if(game.game.home.starting_pitcher)
                         {
@@ -414,18 +420,24 @@ function mergeMLBData()
 
         for(let i = 0; i < fullBets.length; i+=2)
         {
+            // create new bet odds class obj
+            var betOdds = new BetOdds();
+            
             // if date and team match
             if(shortDate === fullBets[i].Date && (game.homeTeam.abbv === fullBets[i].Team || game.awayTeam.abbv === fullBets[i].Team))
             {
-                game.finalOverUnder = parseFloat(fullBets[i].CloseOU);
-                game.finalHomeML = game.homeTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].Close) : parseFloat(fullBets[i + 1].Close);
-                game.finalAwayML = game.awayTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].Close) : parseFloat(fullBets[i + 1].Close);
+                betOdds.finalOverUnder = parseFloat(fullBets[i].CloseOU);
+                betOdds.finalHomeML = game.homeTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].Close) : parseFloat(fullBets[i + 1].Close);
+                betOdds.finalAwayML = game.awayTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].Close) : parseFloat(fullBets[i + 1].Close);
 
                 var homeRunLine = game.homeTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].RunLine) : parseFloat(fullBets[i + 1].RunLine);
                 var awayRunLine = game.awayTeam.abbv === fullBets[i].Team ? parseFloat(fullBets[i].RunLine) : parseFloat(fullBets[i + 1].RunLine);
 
-                game.finalFavorite = homeRunLine < awayRunLine ? game.homeTeam.abbv : game.awayTeam.abbv;
-                game.finalSpread = homeRunLine < awayRunLine ? homeRunLine : awayRunLine;
+                betOdds.finalFavorite = homeRunLine < awayRunLine ? game.homeTeam.abbv : game.awayTeam.abbv;
+                betOdds.finalSpread = homeRunLine < awayRunLine ? homeRunLine : awayRunLine;
+
+                // add bet odds to mlb game
+                game.betOdds = betOdds;
 
                 break;
             }
@@ -938,23 +950,36 @@ function compileMLBData()
                 game.awayTeam.final = null;
             }
 
-            getBetOutcome(game, "l1_full");
-            getBetOutcome(game, "l1_adj");
-            getBetOutcome(game, "l3_full");
-            getBetOutcome(game, "l3_adj");
-            getBetOutcome(game, "l5_full");
-            getBetOutcome(game, "l5_adj");
-            getBetOutcome(game, "l10_full");
-            getBetOutcome(game, "l10_adj");
-            getBetOutcome(game, "sn_full");
-            getBetOutcome(game, "sn_adj");
-            getBetOutcome(game, "ha_full");
-            getBetOutcome(game, "ha_adj");
-            getBetOutcome(game, "wm_full");
-            getBetOutcome(game, "wm_adj");
-            getBetOutcome(game, "ws_full");
-            getBetOutcome(game, "ws_adj");
-            getBetOutcome(game, "final");
+            // get bet data based on team run differential
+            var betData = new BetData();
+            
+            // call function for each bet type
+            getBetDifferential(game, betData, "l1_full");
+            getBetDifferential(game, betData, "l1_adj");
+            getBetDifferential(game, betData, "l3_full");
+            getBetDifferential(game, betData, "l3_adj");
+            getBetDifferential(game, betData, "l5_full");
+            getBetDifferential(game, betData, "l5_adj");
+            getBetDifferential(game, betData, "l10_full");
+            getBetDifferential(game, betData, "l10_adj");
+            getBetDifferential(game, betData, "sn_full");
+            getBetDifferential(game, betData, "sn_adj");
+            getBetDifferential(game, betData, "ha_full");
+            getBetDifferential(game, betData, "ha_adj");
+            getBetDifferential(game, betData, "wm_full");
+            getBetDifferential(game, betData, "wm_adj");
+            getBetDifferential(game, betData, "ws_full");
+            getBetDifferential(game, betData, "ws_adj");
+            getBetDifferential(game, betData, "final");
+
+            // add bet data to mlb game object
+            game.betData = betData;
+
+            // get bet picks based on stats vs bet differential
+            var betPicks = new Object();
+
+            // call function for each bet type
+            getBetPicks(game, betPicks, "l1_full");
         }); 
     }
     catch(error)
@@ -963,18 +988,38 @@ function compileMLBData()
     }
 }
 
-function getBetOutcome(game, keyword)
+function getBetDifferential(game, betData, keyword)
 {
     if(game.homeTeam[keyword] !== null && game.awayTeam[keyword] !== null)
     {
-        game["sp" + keyword] = Math.abs(game.homeTeam[keyword] - game.awayTeam[keyword]);
-        game["fv" + keyword] = game.homeTeam[keyword] > game.awayTeam[keyword] ? game.homeTeam.abbv : game.awayTeam.abbv;
-        game["ou" + keyword] = game.homeTeam[keyword] + game.awayTeam[keyword];
+        betData["sp" + keyword] = Math.abs(game.homeTeam[keyword] - game.awayTeam[keyword]);
+        betData["fv" + keyword] = game.homeTeam[keyword] > game.awayTeam[keyword] ? game.homeTeam.abbv : game.awayTeam.abbv;
+        betData["ou" + keyword] = game.homeTeam[keyword] + game.awayTeam[keyword];
     }
     else
     {
-        game["sp" + keyword] = game["fv" + keyword] = game["ou" + keyword] = null;
+        betData["sp" + keyword] = betData["fv" + keyword] = betData["ou" + keyword] = null;
     }
+}
+
+function getBetPicks(game, betPicks, keyword)
+{
+    var betPickSpread = new Object();
+    var betPickOverUnder = new Object();
+
+    if(game.betData["sp" + keyword] !== null)
+    {
+        var spread = game.betData["sp" + keyword];
+        var favorite = game.betData["fv" + keyword];
+    }
+    else
+    {
+        betPickSpread.outcome = null;
+        betPickSpread.strength = null;
+    }
+
+    betPicks["sp" + keyword] = betPickSpread;
+    betPicks["ou" + keyword] = betPickOverUnder;
 }
 // #endregion
 
