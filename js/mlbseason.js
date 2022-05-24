@@ -980,6 +980,22 @@ function compileMLBData()
 
             // call function for each bet type
             getBetPicks(game, betPicks, "l1_full");
+            getBetPicks(game, betPicks, "l1_adj");
+            getBetPicks(game, betPicks, "l3_full");
+            getBetPicks(game, betPicks, "l3_adj");
+            getBetPicks(game, betPicks, "l5_full");
+            getBetPicks(game, betPicks, "l5_adj");
+            getBetPicks(game, betPicks, "l10_full");
+            getBetPicks(game, betPicks, "l10_adj");
+            getBetPicks(game, betPicks, "sn_full");
+            getBetPicks(game, betPicks, "sn_adj");
+            getBetPicks(game, betPicks, "ha_full");
+            getBetPicks(game, betPicks, "ha_adj");
+            getBetPicks(game, betPicks, "wm_full");
+            getBetPicks(game, betPicks, "wm_adj");
+            getBetPicks(game, betPicks, "ws_full");
+            getBetPicks(game, betPicks, "ws_adj");
+            getBetPicks(game, betPicks, "final");
 
             // add bet picks to mlb game object
             game.betPicks = betPicks;
@@ -1007,11 +1023,13 @@ function getBetDifferential(game, betData, keyword)
 
 function getBetPicks(game, betPicks, keyword)
 {
-    var betPickSpread;
-    var betPickOverUnder;
+    var betPickSpread = new Object();
+    var betPickOverUnder = new Object();
 
+    // if game has bet odds
     if(game.betOdds !== undefined)
     {
+        // spread
         if(game.betData["sp" + keyword] !== null)
         {
             var spreadCalc = game.betData["sp" + keyword];
@@ -1019,20 +1037,23 @@ function getBetPicks(game, betPicks, keyword)
 
             var spreadDiff = favoriteCalc === game.betOdds.finalFavorite ? Math.abs(Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread)) : Math.abs(Math.abs(spreadCalc) + Math.abs(game.betOdds.finalSpread));
 
-            betPickSpread = spreadDiff < 1 ? "none" : spreadDiff >= 1 && spreadDiff < 2 ? "low" : spreadDiff >= 2 && spreadDiff < 3 ? "med" : "high";
+            betPickSpread.pick = spreadDiff < 1 ? "X" : spreadDiff >= 1 && favoriteCalc === game.betOdds.finalFavorite && Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread) > 0 ? "C" : "N";
+            betPickSpread.strength = spreadDiff < 1 ? "X" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
         }
         else
         {
             betPickSpread = null;
         }
 
+        // over/under
         if(game.betData["ou" + keyword] !== null)
         {
             var ouCalc = game.betData["ou" + keyword];
 
             var ouDiff = Math.abs(Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder));
 
-            betPickOverUnder = ouDiff < 1 ? "none" : ouDiff >= 1 && ouDiff < 2 ? "low" : ouDiff >= 2 && ouDiff < 3 ? "med" : "high";
+            //betPickOverUnder.pick = ouDiff < 1 ? "X" : 
+            betPickOverUnder.strength = ouDiff < 1 ? "X" : ouDiff >= 1 && ouDiff < 2 ? "L" : ouDiff >= 2 && ouDiff < 3 ? "M" : "H";
         }
         else
         {
