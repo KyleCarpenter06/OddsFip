@@ -980,6 +980,9 @@ function compileMLBData()
 
             // call function for each bet type
             getBetPicks(game, betPicks, "l1_full");
+
+            // add bet picks to mlb game object
+            game.betPicks = betPicks;
         }); 
     }
     catch(error)
@@ -1004,19 +1007,45 @@ function getBetDifferential(game, betData, keyword)
 
 function getBetPicks(game, betPicks, keyword)
 {
-    var betPickSpread = new Object();
-    var betPickOverUnder = new Object();
+    var betPickSpread;
+    var betPickOverUnder;
 
-    if(game.betData["sp" + keyword] !== null)
+    if(game.betOdds !== undefined)
     {
-        var spread = game.betData["sp" + keyword];
-        var favorite = game.betData["fv" + keyword];
+        if(game.betData["sp" + keyword] !== null)
+        {
+            var spreadCalc = game.betData["sp" + keyword];
+            var favoriteCalc = game.betData["fv" + keyword];
+
+            var spreadDiff = favoriteCalc === game.betOdds.finalFavorite ? Math.abs(Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread)) : Math.abs(Math.abs(spreadCalc) + Math.abs(game.betOdds.finalSpread));
+
+            betPickSpread = spreadDiff < 1 ? "none" : spreadDiff >= 1 && spreadDiff < 2 ? "low" : spreadDiff >= 2 && spreadDiff < 3 ? "med" : "high";
+        }
+        else
+        {
+            betPickSpread = null;
+        }
+
+        if(game.betData["ou" + keyword] !== null)
+        {
+            var ouCalc = game.betData["ou" + keyword];
+
+            var ouDiff = Math.abs(Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder));
+
+            betPickOverUnder = ouDiff < 1 ? "none" : ouDiff >= 1 && ouDiff < 2 ? "low" : ouDiff >= 2 && ouDiff < 3 ? "med" : "high";
+        }
+        else
+        {
+            betPickOverUnder = null;
+        }
     }
     else
     {
-        betPickSpread.outcome = null;
-        betPickSpread.strength = null;
+        betPickSpread = null;
+        betPickOverUnder = null;
     }
+
+    
 
     betPicks["sp" + keyword] = betPickSpread;
     betPicks["ou" + keyword] = betPickOverUnder;
