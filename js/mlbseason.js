@@ -5,6 +5,10 @@ var fullSeason = [];
 var gameIDs = [];
 var fullBets
 var missingDates = [];
+var keywords = ["l1", "l3", "l5", "l10", "sn", "ha", "wm", "ws", "final"];
+var dataTypes = ["full", "adj"];
+var betTypes = ["sp", "ou"];
+var dataAbbv = ["_F", "_A"];
 
 // dates
 var dateObj;
@@ -682,7 +686,7 @@ function compileMLBData()
                 game.homeTeam.l10_full = homeScoreTot / 10;
                 game.awayTeam.l10_full = awayScoreTot / 10;
             }
-            else { game.homeTeam.l5_full = game.awayTeam.l5_full = null; }
+            else { game.homeTeam.l10_full = game.awayTeam.l10_full = null; }
 
             // last 10 games - adj
             if(homeAdj.length >= 10 && awayAdj.length >= 10)
@@ -1000,11 +1004,108 @@ function compileMLBData()
             // add bet picks to mlb game object
             game.betPicks = betPicks;
         }); 
+
+        // display picks
+        displayPicks();
     }
     catch(error)
     {
         console.error(error);
     }
+}
+
+function displayPicks()
+{
+    // get season table from DOM
+    var percentTable = document.getElementById("percent-table");
+
+    // create header row
+    var percentHead = percentTable.createTHead();
+    var percentHRow1 = percentHead.insertRow(0);
+    
+    // empty cells
+    percentHRow1.insertCell(-1);
+    percentHRow1.insertCell(-1);
+
+    var gameSpreadCell = percentHRow1.insertCell(-1);
+    gameSpreadCell.colSpan = "17";
+    gameSpreadCell.innerHTML = "Spreads";
+
+    var gameOverUnderCell = percentHRow1.insertCell(-1);
+    gameOverUnderCell.colSpan = "17";
+    gameOverUnderCell.innerHTML = "Overs / Unders";
+
+    // put in second head row with bet type
+    var percentHRow2 = percentHead.insertRow(-1);
+    var teamsTextCell = percentHRow2.insertCell(-1);
+    teamsTextCell.innerHTML = "Teams";
+    var dateTextCell = percentHRow2.insertCell(-1);
+    dateTextCell.innerHTML = "Date";
+
+    betTypes.forEach(function(betType)
+    {
+        dataAbbv.forEach(function(dataType)
+        {
+            keywords.forEach(function(keyword)
+            {
+                if(keyword !== "final")
+                {
+                    var headerCell = percentHRow2.insertCell(-1);
+                    headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+                    headerCell.innerHTML = keyword + dataType;
+                }
+            });
+        });
+
+        var headerCell = percentHRow2.insertCell(-1);
+        headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+        headerCell.innerHTML = "Fnl";
+    });
+
+    fullSeason.reverse().forEach(function(game)
+    {
+        // create check and cross elements
+        var checkIcon = document.createElement("i");
+        var xmarkIcon = document.createElement("i");
+        var pushIcon = document.createElement("i");
+        var dashIcon = document.createElement("i");
+        checkIcon.classList.add("fa-solid", "fa-check", "check-icon");
+        xmarkIcon.classList.add("fa-solid", "fa-xmark", "xmark-icon");
+        pushIcon.classList.add("fa-solid", "fa-circle", "push-icon");
+        dashIcon.classList.add("fa-solid", "fa-minus");
+
+        // add new row
+        var percentHRow2 = percentHead.insertRow(-1);
+
+        // add teams cell
+        var teamsCell = percentHRow2.insertCell(-1);
+        teamsCell.innerHTML = game.awayTeam.abbv + " @ " + game.homeTeam.abbv;
+
+        // add date cell
+        var dateCell = percentHRow2.insertCell(-1);
+        var gameDate = new Date(game.gameDate);
+        dateCell.innerHTML = gameDate.getMonth() + 1 + "/" + gameDate.getDate();
+
+        betTypes.forEach(function(betType)
+        {
+            dataTypes.forEach(function(dataType)
+            {
+                keywords.forEach(function(keyword)
+                {
+                    if(keyword !== "final")
+                    {
+                        var headerCell = percentHRow2.insertCell(-1);
+                        headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+                        headerCell.innerHTML = keyword + dataType;
+                    }
+                });
+            });
+
+            var headerCell = percentHRow2.insertCell(-1);
+            headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+            headerCell.innerHTML = "Fnl";
+        });
+    });
 }
 
 function getBetDifferential(game, betData, keyword)
@@ -1034,11 +1135,14 @@ function getBetPicks(game, betPicks, keyword)
         {
             var spreadCalc = game.betData["sp" + keyword];
             var favoriteCalc = game.betData["fv" + keyword];
+            var spreadFinal = Math.abs(game.homeTeam.score - game.awayTeam.score);
+            var favoriteFinal = game.homeTeam.score > game.awayTeam.score ? game.homeTeam.abbv : game.awayTeam.abbv;
 
             var spreadDiff = favoriteCalc === game.betOdds.finalFavorite ? Math.abs(Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread)) : Math.abs(Math.abs(spreadCalc) + Math.abs(game.betOdds.finalSpread));
 
             betPickSpread.pick = spreadDiff < 1 ? "X" : spreadDiff >= 1 && favoriteCalc === game.betOdds.finalFavorite && Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread) > 0 ? "C" : "N";
             betPickSpread.strength = spreadDiff < 1 ? "X" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
+            betPickSpread.outcome = spreadDiff < 1 ? "X" : (spreadDiff >= 1 && favoriteFinal === game.betOdds.finalFavorite && spreadFinal > Math.abs(game.betOdds.finalSpread) && betPickSpread.pick === "C") || (spreadDiff >= 1 && favoriteFinal !== game.betOdds.finalFavorite && spreadFinal < Math.abs(game.betOdds.finalSpread) && betPickSpread.pick === "N") ? "Y" : "N";
         }
         else
         {
@@ -1049,11 +1153,13 @@ function getBetPicks(game, betPicks, keyword)
         if(game.betData["ou" + keyword] !== null)
         {
             var ouCalc = game.betData["ou" + keyword];
+            var ouFinal = game.homeTeam.score + game.awayTeam.score;
 
             var ouDiff = Math.abs(Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder));
 
-            //betPickOverUnder.pick = ouDiff < 1 ? "X" : 
+            betPickOverUnder.pick = ouDiff < 1 ? "X" : ouDiff >= 1 && Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder) > 0 ? "O" : "U";
             betPickOverUnder.strength = ouDiff < 1 ? "X" : ouDiff >= 1 && ouDiff < 2 ? "L" : ouDiff >= 2 && ouDiff < 3 ? "M" : "H";
+            betPickOverUnder.outcome = ouDiff < 1 ? "X" : (ouFinal > game.betOdds.finalOverUnder && betPickOverUnder.pick === "O") || (ouFinal < game.betOdds.finalOverUnder && betPickOverUnder.pick === "U") ? "Y" : "N";
         }
         else
         {
@@ -1065,8 +1171,6 @@ function getBetPicks(game, betPicks, keyword)
         betPickSpread = null;
         betPickOverUnder = null;
     }
-
-    
 
     betPicks["sp" + keyword] = betPickSpread;
     betPicks["ou" + keyword] = betPickOverUnder;
