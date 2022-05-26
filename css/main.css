@@ -291,10 +291,10 @@ h4
 /* #endregion */
 
 /* #region SEASON CLASSES */
-#season-table
+/* #season-table
 {
     display: none;
-}
+} */
 #season-table, #percent-table
 {
     border: 1px solid black;
@@ -325,11 +325,15 @@ h4
 }
 #season-table tr td:first-child
 {
-    width: 70px;
+    width: 100px;
 }
 #season-table tr td:nth-child(2)
 {
-    width: 100px;
+    width: 50px;
+}
+#season-table tr td:first-child
+{
+    width: 150px;
 }
 #percent-table tbody tr td:not(:first-child)
 {

@@ -1016,32 +1016,37 @@ function compileMLBData()
 
 function displayPicks()
 {
+    // total bet percent variables
+    var betArray = [];
+
     // get season table from DOM
-    var percentTable = document.getElementById("percent-table");
+    var seasonTable = document.getElementById("season-table");
 
-    // create header row
-    var percentHead = percentTable.createTHead();
-    var percentHRow1 = percentHead.insertRow(0);
-    
-    // empty cells
-    percentHRow1.insertCell(-1);
-    percentHRow1.insertCell(-1);
+    // create header and body areas
+    var seasonHead = seasonTable.createTHead();
+    var seasonBody = seasonTable.createTBody();
 
-    var gameSpreadCell = percentHRow1.insertCell(-1);
+    // create header row 1
+    var seasonHRow1 = seasonHead.insertRow(0);
+    seasonHRow1.insertCell(-1);
+    seasonHRow1.insertCell(-1);
+
+    var gameSpreadCell = seasonHRow1.insertCell(-1);
     gameSpreadCell.colSpan = "17";
     gameSpreadCell.innerHTML = "Spreads";
 
-    var gameOverUnderCell = percentHRow1.insertCell(-1);
+    var gameOverUnderCell = seasonHRow1.insertCell(-1);
     gameOverUnderCell.colSpan = "17";
     gameOverUnderCell.innerHTML = "Overs / Unders";
 
-    // put in second head row with bet type
-    var percentHRow2 = percentHead.insertRow(-1);
-    var teamsTextCell = percentHRow2.insertCell(-1);
+    // create header row 2
+    var seasonHRow2 = seasonHead.insertRow(-1);
+    var teamsTextCell = seasonHRow2.insertCell(-1);
     teamsTextCell.innerHTML = "Teams";
-    var dateTextCell = percentHRow2.insertCell(-1);
+    var dateTextCell = seasonHRow2.insertCell(-1);
     dateTextCell.innerHTML = "Date";
 
+    // create table headers
     betTypes.forEach(function(betType)
     {
         dataAbbv.forEach(function(dataType)
@@ -1050,18 +1055,19 @@ function displayPicks()
             {
                 if(keyword !== "final")
                 {
-                    var headerCell = percentHRow2.insertCell(-1);
+                    var headerCell = seasonHRow2.insertCell(-1);
                     headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
                     headerCell.innerHTML = keyword + dataType;
                 }
             });
         });
 
-        var headerCell = percentHRow2.insertCell(-1);
+        var headerCell = seasonHRow2.insertCell(-1);
         headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
         headerCell.innerHTML = "Fnl";
     });
 
+    // for each game in season
     fullSeason.reverse().forEach(function(game)
     {
         // create check and cross elements
@@ -1075,14 +1081,14 @@ function displayPicks()
         dashIcon.classList.add("fa-solid", "fa-minus");
 
         // add new row
-        var percentHRow2 = percentHead.insertRow(-1);
+        var seasonRow = seasonBody.insertRow(-1);
 
         // add teams cell
-        var teamsCell = percentHRow2.insertCell(-1);
+        var teamsCell = seasonRow.insertCell(-1);
         teamsCell.innerHTML = game.awayTeam.abbv + " @ " + game.homeTeam.abbv;
 
         // add date cell
-        var dateCell = percentHRow2.insertCell(-1);
+        var dateCell = seasonRow.insertCell(-1);
         var gameDate = new Date(game.gameDate);
         dateCell.innerHTML = gameDate.getMonth() + 1 + "/" + gameDate.getDate();
 
@@ -1094,18 +1100,51 @@ function displayPicks()
                 {
                     if(keyword !== "final")
                     {
-                        var headerCell = percentHRow2.insertCell(-1);
-                        headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
-                        headerCell.innerHTML = keyword + dataType;
+                        if(game.betPicks[betType + keyword + "_" + dataType] !== null)
+                        {
+                            
+                            var betPick = game.betPicks[betType + keyword + "_" + dataType].pick;
+                            var betOutcome = game.betPicks[betType + keyword + "_" + dataType].outcome;
+                            var icon = betOutcome === "X" ? dashIcon : betOutcome === "Y" ? checkIcon : xmarkIcon;
+    
+                            var headerCell = seasonRow.insertCell(-1);
+                            headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
+                            headerCell.innerHTML = betPick + icon.outerHTML;
+
+                            var betOBJ = new Object();
+                            betOBJ.type = betType + keyword + "_" + dataType;
+                            betOBJ.pick = betPick;
+                            betOBJ.outcome = betOutcome;
+                            betArray.push(betOBJ);
+                        }
+                        else
+                        {
+                            var headerCell = seasonRow.insertCell(-1);
+                            headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
+                            headerCell.innerHTML = "N/A";
+                        }
                     }
                 });
             });
 
-            var headerCell = percentHRow2.insertCell(-1);
-            headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+            var headerCell = seasonRow.insertCell(-1);
+            headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
             headerCell.innerHTML = "Fnl";
         });
     });
+
+    // create percent table on top of season table
+    // get season table from DOM
+    var percentTable = document.getElementById("percent-table");
+
+    // create header and body areas
+    var percentHead = percentTable.createTHead();
+    var percentBody = percentTable.createTBody();
+
+    // create header row 1
+    var percentHRow = percentHead.insertRow(0);
+    percentHRow.insertCell(-1);
+    percentHRow.insertCell(-1);
 }
 
 function getBetDifferential(game, betData, keyword)
