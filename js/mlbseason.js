@@ -2,6 +2,7 @@
 // arrays
 var fullSeasonAPI = [];
 var fullSeason = [];
+var betArray = [];
 var gameIDs = [];
 var fullBets
 var missingDates = [];
@@ -1016,9 +1017,6 @@ function compileMLBData()
 
 function displayPicks()
 {
-    // total bet percent variables
-    var betArray = [];
-
     // get season table from DOM
     var seasonTable = document.getElementById("season-table");
 
@@ -1031,13 +1029,13 @@ function displayPicks()
     seasonHRow1.insertCell(-1);
     seasonHRow1.insertCell(-1);
 
-    var gameSpreadCell = seasonHRow1.insertCell(-1);
-    gameSpreadCell.colSpan = "17";
-    gameSpreadCell.innerHTML = "Spreads";
+    var seasonSpreadCell = seasonHRow1.insertCell(-1);
+    seasonSpreadCell.colSpan = "17";
+    seasonSpreadCell.innerHTML = "Spreads";
 
-    var gameOverUnderCell = seasonHRow1.insertCell(-1);
-    gameOverUnderCell.colSpan = "17";
-    gameOverUnderCell.innerHTML = "Overs / Unders";
+    var seasonOverUnderCell = seasonHRow1.insertCell(-1);
+    seasonOverUnderCell.colSpan = "17";
+    seasonOverUnderCell.innerHTML = "Overs / Unders";
 
     // create header row 2
     var seasonHRow2 = seasonHead.insertRow(-1);
@@ -1102,19 +1100,30 @@ function displayPicks()
                     {
                         if(game.betPicks[betType + keyword + "_" + dataType] !== null)
                         {
-                            
                             var betPick = game.betPicks[betType + keyword + "_" + dataType].pick;
                             var betOutcome = game.betPicks[betType + keyword + "_" + dataType].outcome;
+                            var betStrength = game.betPicks[betType + keyword + "_" + dataType].strength;
                             var icon = betOutcome === "X" ? dashIcon : betOutcome === "Y" ? checkIcon : xmarkIcon;
+
+                            // add tooltip for cell (5/27/22 - taking too long to render???)
+                            var tooltipSpan = document.createElement("span");
+                            tooltipSpan.classList.add("sn-bet-tooltip");
+                            var tooltipText = "Calculated: ";
+                            tooltipText += "\n\n";
+                            tooltipText += "Actual: ";
+                            tooltipText += "\n\n";
+                            tooltipText += "Result: ";
+                            tooltipSpan.textContent = tooltipText;
     
                             var headerCell = seasonRow.insertCell(-1);
-                            headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
-                            headerCell.innerHTML = betPick + icon.outerHTML;
+                            headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td", "sn-bet-cell");
+                            headerCell.innerHTML = betPick + icon.outerHTML + tooltipSpan.outerHTML;
 
                             var betOBJ = new Object();
                             betOBJ.type = betType + keyword + "_" + dataType;
                             betOBJ.pick = betPick;
                             betOBJ.outcome = betOutcome;
+                            betOBJ.strength = betStrength;
                             betArray.push(betOBJ);
                         }
                         else
@@ -1127,9 +1136,30 @@ function displayPicks()
                 });
             });
 
-            var headerCell = seasonRow.insertCell(-1);
-            headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
-            headerCell.innerHTML = "Fnl";
+            if(game.betPicks[betType + "final"] !== null)
+            {
+                var betPick = game.betPicks[betType + "final"].pick;
+                var betOutcome = game.betPicks[betType + "final"].outcome;
+                var betStrength = game.betPicks[betType + "final"].strength;
+                var icon = betOutcome === "X" ? dashIcon : betOutcome === "Y" ? checkIcon : xmarkIcon;
+
+                var headerCell = seasonRow.insertCell(-1);
+                headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
+                headerCell.innerHTML = betPick + icon.outerHTML;
+
+                var betOBJ = new Object();
+                betOBJ.type = betType + "final";
+                betOBJ.pick = betPick;
+                betOBJ.outcome = betOutcome;
+                betOBJ.strength = betStrength;
+                betArray.push(betOBJ);
+            }
+            else
+            {
+                var headerCell = seasonRow.insertCell(-1);
+                headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td");
+                headerCell.innerHTML = "N/A";
+            }
         });
     });
 
@@ -1142,9 +1172,197 @@ function displayPicks()
     var percentBody = percentTable.createTBody();
 
     // create header row 1
-    var percentHRow = percentHead.insertRow(0);
-    percentHRow.insertCell(-1);
-    percentHRow.insertCell(-1);
+    var percentHRow1 = percentHead.insertRow(0);
+    percentHRow1.insertCell(-1);
+
+    var percentSpreadCell = percentHRow1.insertCell(-1);
+    percentSpreadCell.colSpan = "17";
+    percentSpreadCell.innerHTML = "Spreads";
+
+    var percentOverUnderCell = percentHRow1.insertCell(-1);
+    percentOverUnderCell.colSpan = "17";
+    percentOverUnderCell.innerHTML = "Overs / Unders";
+
+    // create header row 2
+    var percentHRow2 = percentHead.insertRow(-1);
+    percentHRow2.insertCell(-1);
+
+    // create table headers
+    betTypes.forEach(function(betType)
+    {
+        dataAbbv.forEach(function(dataType)
+        {
+            keywords.forEach(function(keyword)
+            {
+                if(keyword !== "final")
+                {
+                    var headerCell = percentHRow2.insertCell(-1);
+                    headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+                    headerCell.innerHTML = keyword + dataType;
+                }
+            });
+        });
+
+        var headerCell = percentHRow2.insertCell(-1);
+        headerCell.classList.add(betType === "sp" ? "tan-th" : "blue-th");
+        headerCell.innerHTML = "Fnl";
+    });
+
+    // create all bets row
+    var percentBRow1 = percentBody.insertRow(0);
+
+    // create text cell
+    var percentAllCell = percentBRow1.insertCell(-1);
+    percentAllCell.innerHTML = "Total Bets";
+
+    betTypes.forEach(function(betType)
+    {
+        dataTypes.forEach(function(dataType)
+        {
+            keywords.forEach(function(keyword)
+            {
+                if(keyword !== "final")
+                {
+                    // get filtered arrays by type
+                    var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X")});
+                    var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.outcome === "Y")});
+                    
+                    // generate percentage based on pick numbers
+                    var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+                    var percentCell = percentBRow1.insertCell(-1);
+                    percentCell.innerHTML = percentCorrect + "%";
+                }
+            });
+        });
+
+        // get filtered arrays by type
+        var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X")});
+        var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.outcome === "Y")});
+        
+        // generate percentage based on pick numbers
+        var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+        var percentCell = percentBRow1.insertCell(-1);
+        percentCell.innerHTML = percentCorrect + "%";
+    });
+
+    // create small margin row
+    var percentBRow2 = percentBody.insertRow(-1);
+
+    // create text cell
+    var percentSmallCell = percentBRow2.insertCell(-1);
+    percentSmallCell.innerHTML = "Small Margins";
+
+    betTypes.forEach(function(betType)
+    {
+        dataTypes.forEach(function(dataType)
+        {
+            keywords.forEach(function(keyword)
+            {
+                if(keyword !== "final")
+                {
+                    // get filtered arrays by type
+                    var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.strength === "L")});
+                    var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.outcome === "Y" && obj.strength === "L")});
+                    
+                    // generate percentage based on pick numbers
+                    var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+                    var percentCell = percentBRow2.insertCell(-1);
+                    percentCell.innerHTML = percentCorrect + "%";
+                }
+            });
+        });
+
+        // get filtered arrays by type
+        var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.strength === "L")});
+        var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.outcome === "Y" && obj.strength === "L")});
+        
+        // generate percentage based on pick numbers
+        var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+        var percentCell = percentBRow2.insertCell(-1);
+        percentCell.innerHTML = percentCorrect + "%";
+    });
+
+    // create medium margin row
+    var percentBRow3 = percentBody.insertRow(-1);
+
+    // create text cell
+    var percentMediumCell = percentBRow3.insertCell(-1);
+    percentMediumCell.innerHTML = "Medium Margins";
+
+    betTypes.forEach(function(betType)
+    {
+        dataTypes.forEach(function(dataType)
+        {
+            keywords.forEach(function(keyword)
+            {
+                if(keyword !== "final")
+                {
+                    // get filtered arrays by type
+                    var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.strength === "M")});
+                    var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.outcome === "Y" && obj.strength === "M")});
+                    
+                    // generate percentage based on pick numbers
+                    var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+                    var percentCell = percentBRow3.insertCell(-1);
+                    percentCell.innerHTML = percentCorrect + "%";
+                }
+            });
+        });
+
+        // get filtered arrays by type
+        var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.strength === "M")});
+        var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.outcome === "Y" && obj.strength === "M")});
+        
+        // generate percentage based on pick numbers
+        var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+        var percentCell = percentBRow3.insertCell(-1);
+        percentCell.innerHTML = percentCorrect + "%";
+    });
+
+    // create high margin row
+    var percentBRow4 = percentBody.insertRow(-1);
+
+    // create text cell
+    var percentHighCell = percentBRow4.insertCell(-1);
+    percentHighCell.innerHTML = "High Margins";
+
+    betTypes.forEach(function(betType)
+    {
+        dataTypes.forEach(function(dataType)
+        {
+            keywords.forEach(function(keyword)
+            {
+                if(keyword !== "final")
+                {
+                    // get filtered arrays by type
+                    var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.strength === "H")});
+                    var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + keyword + "_" + dataType && obj.pick !== "X" && obj.outcome === "Y" && obj.strength === "H")});
+                    
+                    // generate percentage based on pick numbers
+                    var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+                    var percentCell = percentBRow4.insertCell(-1);
+                    percentCell.innerHTML = percentCorrect + "%";
+                }
+            });
+        });
+
+        // get filtered arrays by type
+        var betArrayFilt = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.strength === "H")});
+        var betArrayFiltCorr = betArray.filter(obj => { return (obj.type === betType + "final" && obj.pick !== "X" && obj.outcome === "Y" && obj.strength === "H")});
+        
+        // generate percentage based on pick numbers
+        var percentCorrect = (betArrayFiltCorr.length / betArrayFilt.length * 100).toFixed(2);
+
+        var percentCell = percentBRow4.insertCell(-1);
+        percentCell.innerHTML = percentCorrect + "%";
+    });
 }
 
 function getBetDifferential(game, betData, keyword)

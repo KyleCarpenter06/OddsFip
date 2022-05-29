@@ -325,15 +325,15 @@ h4
 }
 #season-table tr td:first-child
 {
-    width: 100px;
+    width: 80px;
 }
 #season-table tr td:nth-child(2)
 {
-    width: 50px;
+    width: 40px;
 }
-#season-table tr td:first-child
+#percent-table tr td:first-child
 {
-    width: 150px;
+    width: 120px;
 }
 #percent-table tbody tr td:not(:first-child)
 {
@@ -447,7 +447,8 @@ h4
     top:0;
     left: 20px;
     z-index: 100;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: left;
 }
 
 .sn-bet-cell
