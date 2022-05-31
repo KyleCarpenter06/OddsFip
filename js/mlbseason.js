@@ -1108,9 +1108,10 @@ function displayPicks()
                             // add tooltip for cell (5/27/22 - taking too long to render???)
                             var tooltipSpan = document.createElement("span");
                             tooltipSpan.classList.add("sn-bet-tooltip");
-                            var tooltipText = "Calculated: " + game.betPicks[betType + keyword + "_" + dataType].pick;
+                            var betDataAdj = betType === "sp" 
+                            var tooltipText = "Calculated: " + game.betData[betType + keyword + "_" + dataType].pick;
                             tooltipText += "\n\n";
-                            tooltipText += "Actual: " + game.betPicks[betType + keyword + "_" + dataType].outcome;
+                            tooltipText += "Actual: " + game.betData[betType + keyword + "_" + dataType].outcome;
                             tooltipText += "\n\n";
                             tooltipText += "Result: " + icon.outerHTML;
                             tooltipSpan.textContent = tooltipText;
