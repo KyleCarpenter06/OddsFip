@@ -447,7 +447,7 @@ h4
     top:0;
     left: 40px;
     z-index: 100;
-    white-space: normal;
+    white-space: nowrap;
     text-align: left;
 }
 

@@ -1105,20 +1105,44 @@ function displayPicks()
                             var betStrength = game.betPicks[betType + keyword + "_" + dataType].strength;
                             var icon = betOutcome === "X" ? dashIcon : betOutcome === "Y" ? checkIcon : xmarkIcon;
 
+                            var spreadFinal = Math.abs(game.homeTeam.score - game.awayTeam.score);
+                            var favoriteFinal = game.homeTeam.score > game.awayTeam.score ? game.homeTeam.abbv : game.awayTeam.abbv;
+                            var ouFinal = game.homeTeam.score + game.awayTeam.score;
+
                             // add tooltip for cell (5/27/22 - taking too long to render???)
-                            var tooltipSpan = document.createElement("span");
-                            tooltipSpan.classList.add("sn-bet-tooltip");
-                            var betDataAdj = betType === "sp" 
-                            var tooltipText = "Calculated: " + game.betData[betType + keyword + "_" + dataType].pick;
-                            tooltipText += "\n\n";
-                            tooltipText += "Actual: " + game.betData[betType + keyword + "_" + dataType].outcome;
-                            tooltipText += "\n\n";
-                            tooltipText += "Result: " + icon.outerHTML;
-                            tooltipSpan.textContent = tooltipText;
+                            var tooltipHTML = document.createElement("span");
+                            tooltipHTML.classList.add("sn-bet-tooltip");
+
+                            var tooltipSpan1 = document.createElement("span");
+                            var betDataText = betType === "sp" ? game.betData["fv" + keyword + "_" + dataType] + " " + game.betData["sp" + keyword + "_" + dataType].toFixed(2) : game.betData["ou" + keyword + "_" + dataType].toFixed(2);
+                            var tooltipText1 = "Calculated: " + betDataText;
+                            tooltipSpan1.textContent = tooltipText1;
+
+                            var tooltipBR1 = document.createElement("br");
+
+                            var tooltipSpan2 = document.createElement("span");
+                            var betOddsText = betType === "sp" ? game.betOdds.finalFavorite + " " + Math.abs(game.betOdds.finalSpread) : game.betOdds.finalOverUnder;
+                            var tooltipText2 = "Closed Odds: " + betOddsText;
+                            tooltipSpan2.textContent = tooltipText2;
+
+                            var tooltipBR2 = document.createElement("br");
+
+                            var tooltipSpan3 = document.createElement("span");
+                            var betActualText = betType === "sp" ? favoriteFinal + " " + spreadFinal : ouFinal;
+                            var tooltipText3 = "Actual: " + betActualText;
+                            tooltipSpan3.textContent = tooltipText3;   
+                            
+                            var tooltipBR3 = document.createElement("br");
+
+                            var tooltipSpan4 = document.createElement("span");
+                            var tooltipText4 = "Result: ";
+                            tooltipSpan4.textContent = tooltipText4;
+
+                            tooltipHTML.innerHTML = tooltipSpan1.outerHTML + tooltipBR1.outerHTML + tooltipSpan2.outerHTML + tooltipBR2.outerHTML + tooltipSpan3.outerHTML + tooltipBR3.outerHTML + tooltipSpan4.outerHTML + icon.outerHTML;
     
                             var headerCell = seasonRow.insertCell(-1);
                             headerCell.classList.add(betType === "sp" ? "tan-td" : "blue-td", "sn-bet-cell");
-                            headerCell.innerHTML = betPick + icon.outerHTML + tooltipSpan.outerHTML;
+                            headerCell.innerHTML = betPick + icon.outerHTML + tooltipHTML.outerHTML;
 
                             var betOBJ = new Object();
                             betOBJ.type = betType + keyword + "_" + dataType;
