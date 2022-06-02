@@ -725,8 +725,8 @@ function compileMLBData()
                     }
                 });
 
-                game.homeTeam.ha_full = homeScoreTot / homeCounter;
-                game.awayTeam.ha_full = awayScoreTot / awayCounter;
+                game.homeTeam.ha_full = homeCounter > 0 ? homeScoreTot / homeCounter : null;
+                game.awayTeam.ha_full = awayCounter > 0 ? awayScoreTot / awayCounter : null;
             }
             else { game.homeTeam.ha_full = game.awayTeam.ha_full = null; }
 
@@ -1424,7 +1424,7 @@ function getBetPicks(game, betPicks, keyword)
 
             betPickSpread.pick = spreadDiff < 1 ? "X" : spreadDiff >= 1 && favoriteCalc === game.betOdds.finalFavorite && Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread) > 0 ? "C" : "N";
             betPickSpread.strength = spreadDiff < 1 ? "X" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
-            betPickSpread.outcome = spreadDiff < 1 ? "X" : (spreadDiff >= 1 && favoriteFinal === game.betOdds.finalFavorite && spreadFinal > Math.abs(game.betOdds.finalSpread) && betPickSpread.pick === "C") || (spreadDiff >= 1 && favoriteFinal !== game.betOdds.finalFavorite && spreadFinal < Math.abs(game.betOdds.finalSpread) && betPickSpread.pick === "N") ? "Y" : "N";
+            betPickSpread.outcome = spreadDiff < 1 ? "X" : (spreadDiff >= 1 && favoriteFinal === game.betOdds.finalFavorite && spreadFinal > Math.abs(game.betOdds.finalSpread) && betPickSpread.pick === "C") || (spreadDiff >= 1 && (favoriteFinal !== game.betOdds.finalFavorite || (favoriteFinal === game.betOdds.finalFavorite && spreadFinal < 2)) && betPickSpread.pick === "N") ? "Y" : "N";
         }
         else
         {

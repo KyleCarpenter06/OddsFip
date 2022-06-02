@@ -303,7 +303,7 @@ h4
     background-color: white;
     border-radius: 5px;
     box-shadow: 0 0 3px 1px #ccc;
-    overflow: hidden;
+    overflow:visible;
     font-size: 12px;
     box-sizing: border-box;
 }
