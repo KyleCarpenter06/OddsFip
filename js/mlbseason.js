@@ -4,7 +4,7 @@ var fullSeasonAPI = [];
 var fullSeason = [];
 var betArray = [];
 var gameIDs = [];
-var fullBets
+var fullBets;
 var missingDates = [];
 var keywords = ["l1", "l3", "l5", "l10", "sn", "ha", "wm", "ws", "final"];
 var dataTypes = ["full", "adj"];
@@ -162,8 +162,16 @@ let BetData = class
 // #region INIT
 $(function()
 {
+    initFunction();
+});
+
+function initFunction()
+{
     // get mlb season from dropdown
     var selectedYear = $("#years").val();
+
+    // set header span text
+    $("#selected-season").html(selectedYear);
 
     if(selectedYear !== "2022")
     {
@@ -173,7 +181,23 @@ $(function()
     {
         getAvailableKeys();
     }
-});
+}
+
+function yearChanged()
+{
+    // reset all array, tables
+    fullSeasonAPI = [];
+    fullSeason = [];
+    betArray = [];
+    gameIDs = [];
+    fullBets = null;
+    missingDates = [];
+
+    $("#percent-table tr").remove();
+    $("#season-table tr").remove();
+
+    initFunction();
+}
 
 async function getAvailableKeys()
 {
