@@ -3,6 +3,7 @@
         <link rel="stylesheet" type="text/css" href="css/main.css" >
         <script src="scripts/jquery-3.6.0.js" type="text/javascript"></script>
         <script src="js/config.js" type="text/javascript"></script>
+        <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
         <script src="js/main.js" type="module"></script>
     </head>
     <body>
@@ -12,15 +13,18 @@
         <main>
             <section id="date-section">
                 <h3 id="odds-board-sport">
-                    NBA Odds Board
+                    MLB Odds Board
                 </h3>
                 <div id="odds-board-cal">
                     <input type="date"/>
                 </div>
                 <div id="odds-board-api">
-                    <input id="call-nba-api" type="button" value="Call NBA API" onclick="callNBAAPI()"/><br/>
-                    <input id="call-parse" type="button" value="Call Parse Function" onclick="testParseFunction()"/><br/>
+                    <input type="file" id="upload">
                 </div>
+                <div> 
+                    <button id="submit">Submit</button>    
+                </div>
+                <div id="results"></div>
                 <div class="flex-break"></div>
                 <h4 id="odds-board-date">
                     Today's Date
