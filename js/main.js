@@ -23,6 +23,7 @@ var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
 var apiURL;
 var badAPIKeys = [];
+var odds_api_key = config.ODDS_API_KEY;
 
 // aws - testing
 var bucketName = "oddsflip";
@@ -167,12 +168,24 @@ let BetData = class
 // #region INIT
 $(function()
 {
-    initFunction();
+    // call initial functions
+    getTodaysDate();
+    callOddsAPI();
+
+    // testing
+    call_SR_API_GAMES();
+    callS3();
 });
 
-function initFunction()
+function getTodaysDate()
 {
-    callS3();
+    // get current date (utc)
+    var todayDate = new Date();
+    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    $("#odds-board-date").text(todayDate.toLocaleDateString("en-US", options));
+
+    // format current date for api call
+    dateStr = formatDateToString(todayDate);
 }
 // #endregion
 
@@ -221,5 +234,168 @@ function callS3()
             results.innerHTML = 'Nothing to upload.';
         }
     }, false);
+}
+
+function getPlayerData(response)
+{
+    var test = response;
+}
+// #endregion
+
+// #region ODDS API functions
+async function callOddsAPI()
+{   
+    if(typeof config !== "undefined")
+    {
+        await ODDS_API_CALL()
+        .then((response) => oddsAPIResponse(response))
+        .catch((error) => oddsAPIError(error));
+    }
+    else
+    {
+        alert("Error: config.js file is missing.")
+    }
+}
+
+function oddsAPIResponse(response)
+{
+    // create mlb odds object
+    var math = 1+1;
+}
+
+function oddsAPIError(error)
+{
+    if(error.responseJSON.message.includes("quota"))
+    {
+        odds_api_key = config.ODDS_API_KEY2;
+        callOddsAPI();
+    }
+    else
+    {
+        alert(error.responseJSON.message)
+    }
+    
+}
+
+function ODDS_API_CALL()
+{
+    const settings = {
+        "async": true,
+        "crossDomain": true,
+        "url": "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds?apiKey=" + odds_api_key + "&regions=us&markets=h2h,spreads,totals",
+        "method": "GET"
+    };
+
+    return new Promise(function(resolve, reject)
+    {
+        $.ajax(settings).done(function(data, textStatus, jqXHR)
+        {
+            // testing ---- get number of requests left
+            var reqLeft = parseInt(jqXHR.getResponseHeader("x-requests-remaining"));
+
+            // call resolve function with data
+            resolve(data);
+        }).fail(reject);
+    });
+}
+// #endregion
+
+// #region MLB SR API CALLS
+async function call_SR_API_GAMES()
+{   
+    if(typeof config !== "undefined")
+    {
+        await SR_API_CALL_GAMES()
+        .then((response) => getPlayerData(response))
+        .catch((error) => mlbAPIErrorGames(error));
+    }
+    else
+    {
+        alert("Error: config.js file is missing.");
+    }
+}
+
+function mlbAPIErrorGames(error)
+{
+    // display error and date
+    console.log("Error Games:" + error.status + " - " + error.statusText + " on date " + dateStr);
+}
+
+function SR_API_CALL_GAMES()
+{
+    apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + dateStr + "/summary.json?api_key=" + current_API_Key;
+
+    return SR_API_CALL();
+}
+
+function SR_API_CALL()
+{
+    return new Promise(function (resolve, reject)
+    {
+        // create api function call
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", apiURL);
+        
+        xhr.timeout = 30000;
+        xhr.ontimeout = function ()
+        {
+            // return other error
+            reject({
+                status: 408,
+                statusText: "request timed out after 30 seconds"
+            });
+        };
+        xhr.onreadystatechange = function ()
+        {
+            if (this.readyState === 4 && this.status === 200)
+            {
+                // get amount of calls left, call function
+                //getAPIQuota(xhr.getResponseHeader("X-Plan-Quota-Current"), xhr.getResponseHeader("X-Final-Url"));
+
+                // return data
+                resolve(JSON.parse(this.responseText));
+            }
+            else if (this.readyState === 4 && this.status === 0)
+            {
+                // return error 0, not found
+                reject({
+                    status: this.status,
+                    statusText: "Request canceled. The browser refused to honor the request."
+                });
+            }
+            else if (this.readyState === 4 && this.status !== 200)
+            {
+                // get amount of calls left, call function
+                //getAPIQuota(1000, xhr.getResponseHeader("X-Final-Url"));
+
+                // return other error
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText,
+                    finalUrl: xhr.getResponseHeader("X-Final-Url")
+                });
+            }
+        };
+        xhr.onerror = function ()
+        {
+            // return general error
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+}
+// #endregion
+
+// #region OTHER FUNCTIONS
+function formatDateToString(date)
+{
+    let month = (date.getMonth() + 1).toString().padStart(2, '0');
+    let day = date.getDate().toString().padStart(2, '0');
+    let year = date.getFullYear();
+
+    return [year, month, day].join('/');
 }
 // #endregion
