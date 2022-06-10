@@ -290,6 +290,33 @@ h4
 
 /* #endregion */
 
+/* #region MLB TEAM CLASSES */
+.mlb-team-img
+{
+    width: 40px;
+}
+.mlb-at-sign
+{
+    width: 20px;
+    text-align: center;
+    font-size: 12px;
+    color:#444;
+}
+.mlb-team-img img
+{
+    width: 40px;
+    height: 40px;
+    object-fit:contain;
+    image-rendering: smooth;
+}
+.mlb-spread
+{
+    width: 70px;
+    margin-left: 8px;
+    font-size: 12px;
+}
+/* #endregion */
+
 /* #region SEASON CLASSES */
 /* #season-table
 {

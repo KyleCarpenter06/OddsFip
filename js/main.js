@@ -32,6 +32,133 @@ var IdentityPoolId = "us-west-2:652c2350-c216-4149-a109-9d651983894a";
 
 // other
 var currentGame;
+var mlbOdds;
+var mlbGames = [];
+var mlbGameData;
+
+// mlb teams
+let mlbImages = [
+    {
+        "abbv": "BAL",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Baltimore_Orioles.png"
+    },
+    {
+        "abbv": "BOS",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Boston_Redsox.png"
+    },
+    {
+        "abbv": "NYY",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/NewYork_Yankees.png"
+    },
+    {
+        "abbv": "TB",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/TampaBay_Rays.png"
+    },
+    {
+        "abbv": "TOR",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Toronto_Blue_Jays.png"
+    },
+    {
+        "abbv": "CWS",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Chicago_White_Sox.png"
+    },
+    {
+        "abbv": "CLE",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Cleveland_Indians.png"
+    },
+    {
+        "abbv": "DET",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Detroit_Tigers.png"
+    },
+    {
+        "abbv": "KC",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/KansasCity_Royals.png"
+    },
+    {
+        "abbv": "MIN",
+        "logo": "https://logos-download.com/wp-content/uploads/2016/04/Minnesota_Twins_logo_emblem-700x700.png"
+    },
+    {
+        "abbv": "HOU",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Houston_Astros.png"
+    },
+    {
+        "abbv": "LAA",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/LosAngeles_Angels.png"
+    },
+    {
+        "abbv": "OAK",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Oakland_Athletics.png"
+    },
+    {
+        "abbv": "SEA",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Seattle_Mariners.png"
+    },
+    {
+        "abbv": "TEX",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Texas_Rangers.png"
+    },
+    {
+        "abbv": "ATL",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Atlanta_Braves.png"
+    },
+    {
+        "abbv": "MIA",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Miami_Marlins.png"
+    },
+    {
+        "abbv": "NYM",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/NewYork_Mets.png"
+    },
+    {
+        "abbv": "PHI",
+        "logo": "https://png2.cleanpng.com/sh/64fe5fcfd6b7342335a42abea65bdba0/L0KzQYm3U8E2N6Rrj5H0aYP2gLBuTgBpcZ1mfNd1cHjscX73iPltdJpqi592bHKwh7F5jPQue5Z3gdd8LXLkg7bpgfxtNZRxReJxaXzvebb6TfNtcaFmiuZ8LUXkcbLqgfM2O2Nne9Y9LkKzQoWCWMU1OWY3SaM9MkS5SYO3V8gveJ9s/kisspng-philadelphia-phillies-mlb-world-series-baseball-cl-phillies-cliparts-5aaacac532bcd4.2024985415211424692078.png"
+    },
+    {
+        "abbv": "WSH",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Washington_Nationals.png"
+    },
+    {
+        "abbv": "CHC",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Chicago_Cubs.png"
+    },
+    {
+        "abbv": "CIN",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Cincinnati_Reds.png"
+    },
+    {
+        "abbv": "MIL",
+        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/b/b8/Milwaukee_Brewers_logo.svg/1200px-Milwaukee_Brewers_logo.svg.png"
+    },
+    {
+        "abbv": "PIT",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Pittsburgh_Pirates.png"
+    },
+    {
+        "abbv": "STL",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/StLouis_Cardinals.png"
+    },
+    {
+        "abbv": "ARI",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Arizona_Diamondbacks.png"
+    },
+    {
+        "abbv": "COL",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Colorado_Rockies.png"
+    },
+    {
+        "abbv": "LAD",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/LosAngeles_Dodgers.png"
+    },
+    {
+        "abbv": "SD",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/SanDiego_Padres.png"
+    },
+    {
+        "abbv": "SF",
+        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/SanFrancisco_Giants.png"
+    }
+]
 
 // mlb game object class
 let MLB_Game = class
@@ -166,15 +293,16 @@ let BetData = class
 // #endregion
 
 // #region INIT
-$(function()
+$(async function()
 {
-    // call initial functions
-    getTodaysDate();
-    callOddsAPI();
+    // call initial functions, sequence using await
+    await Promise.all([getTodaysDate(), callOddsAPI(), call_SR_API_GAMES()]);
+    
+    // then merge and display data
+    mergeMLBData();
 
     // testing
-    call_SR_API_GAMES();
-    callS3();
+    //callS3();
 });
 
 function getTodaysDate()
@@ -236,9 +364,93 @@ function callS3()
     }, false);
 }
 
-function getPlayerData(response)
+function mergeMLBData()
 {
-    var test = response;
+    // check if mlb games today
+    if(mlbGameData.league.games !== undefined)
+    {
+        mlbGameData.league.games.forEach(function(gameData)
+        {
+            // create mlb game object
+            var mlbGameOBJ = new Object();
+
+            // add game data
+            mlbGameOBJ.game = gameData.game;
+            mlbGameOBJ.favoriteTeam = "N/A";
+
+            mlbOdds.forEach(function(odds)
+            {
+                // get odds and game dates
+                var oddsDate = formatDateToString(new Date(odds.commence_time));
+                var gameDate = formatDateToString(new Date(gameData.game.scheduled));
+
+                // get odds and game home teams
+                var oddsHome = odds.home_team;
+                var gameHome = gameData.game.home.market + " " + gameData.game.home.name;
+
+                // if dates and home team matches
+                if(oddsDate === gameDate && oddsHome === gameHome)
+                {
+                    // get fanduel object from bookmakers array
+                    var fanduelOdds = odds.bookmakers.filter(books => books.key === "fanduel")[0];
+                    var fanduelSpread = fanduelOdds.markets.filter(market => market.key === "spreads")[0];
+
+                    // check if spread available
+                    if(fanduelSpread !== undefined)
+                    {
+                        // get spread of home team, get favorite
+                        var homeTeamSpread = fanduelSpread.outcomes.filter(team => team.name === gameHome)[0].point;
+                        var spreadFav = homeTeamSpread < 0 ? fanduelSpread.outcomes.filter(team => team.name === gameHome)[0].name : fanduelSpread.outcomes.filter(team => team.name !== gameHome)[0].name;
+                        var spreadNum = homeTeamSpread < 0 ? fanduelSpread.outcomes.filter(team => team.name === gameHome)[0].point : fanduelSpread.outcomes.filter(team => team.name !== gameHome)[0].point;
+
+                        // add favorite to array
+                        mlbGameOBJ.favoriteTeam = spreadFav;
+                        mlbGameOBJ.favoriteNum = spreadNum;
+                    }
+                }
+            })
+
+            mlbGames.push(mlbGameOBJ);
+        })
+
+        getPlayerData();
+    }
+}
+
+function getPlayerData()
+{
+    mlbGames.forEach(function(mlbGame)
+    {
+        // load seperate 'game.html' into main game div
+        var $game = $('<div>');
+        $game.load("mlbgame.html", function()
+        {
+            // get team logos
+            var homeLogo = mlbImages.filter(mlbLogo => mlbLogo.abbv === mlbGame.game.home.abbr)[0].logo;
+            var awayLogo = mlbImages.filter(mlbLogo => mlbLogo.abbv === mlbGame.game.away.abbr)[0].logo;
+
+            // get current game
+            var $currentGame = $game.find('.game-container');
+
+            // set team logos
+            var awayTeamIMG = $currentGame.find('.mlb-team-img').eq(0).find("img");
+            awayTeamIMG.attr("src", homeLogo);
+            var homeTeamIMG = $currentGame.find('.mlb-team-img').eq(1).find("img");
+            homeTeamIMG.attr("src", awayLogo);
+
+            // get game spread
+            var homeNameFull = mlbGame.game.home.market + " " + mlbGame.game.home.name;
+            var favoriteTeamAbbv = mlbGame.favoriteTeam !== "N/A" ? mlbGame.favoriteTeam === homeNameFull ? mlbGame.game.home.abbr : mlbGame.game.away.abbr : "N/A";
+            var spreadText = favoriteTeamAbbv !== "N/A" ? favoriteTeamAbbv + " " + mlbGame.favoriteNum : "N/A";
+
+            // set game spread
+            var gameSpread = $currentGame.find('.mlb-spread').eq(0);
+            gameSpread.text(spreadText);
+
+            // add game template to main game div
+            $("#games").append($game);
+        });
+    })
 }
 // #endregion
 
@@ -259,8 +471,7 @@ async function callOddsAPI()
 
 function oddsAPIResponse(response)
 {
-    // create mlb odds object
-    var math = 1+1;
+    mlbOdds = response;
 }
 
 function oddsAPIError(error)
@@ -306,13 +517,18 @@ async function call_SR_API_GAMES()
     if(typeof config !== "undefined")
     {
         await SR_API_CALL_GAMES()
-        .then((response) => getPlayerData(response))
+        .then((response) => mlbAPIResponse(response))
         .catch((error) => mlbAPIErrorGames(error));
     }
     else
     {
         alert("Error: config.js file is missing.");
     }
+}
+
+function mlbAPIResponse(response)
+{
+    mlbGameData = response;
 }
 
 function mlbAPIErrorGames(error)
