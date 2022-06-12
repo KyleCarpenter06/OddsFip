@@ -42,123 +42,123 @@ var mlbSeasonData;
 let mlbImages = [
     {
         "abbv": "BAL",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Baltimore_Orioles.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/bal.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "BOS",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Boston_Redsox.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/bos.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "NYY",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/NewYork_Yankees.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/nyy.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "TB",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/TampaBay_Rays.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/tb.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "TOR",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Toronto_Blue_Jays.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/tor.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "CWS",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Chicago_White_Sox.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/chw.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "CLE",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Cleveland_Indians.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/cle.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "DET",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Detroit_Tigers.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/det.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "KC",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/KansasCity_Royals.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/kc.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "MIN",
-        "logo": "https://logos-download.com/wp-content/uploads/2016/04/Minnesota_Twins_logo_emblem-700x700.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/min.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "HOU",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Houston_Astros.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/hou.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "LAA",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/LosAngeles_Angels.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/laa.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "OAK",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Oakland_Athletics.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/oak.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "SEA",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Seattle_Mariners.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/sea.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "TEX",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Texas_Rangers.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/tex.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "ATL",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Atlanta_Braves.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/atl.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "MIA",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Miami_Marlins.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/mia.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "NYM",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/NewYork_Mets.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/nym.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "PHI",
-        "logo": "https://png2.cleanpng.com/sh/64fe5fcfd6b7342335a42abea65bdba0/L0KzQYm3U8E2N6Rrj5H0aYP2gLBuTgBpcZ1mfNd1cHjscX73iPltdJpqi592bHKwh7F5jPQue5Z3gdd8LXLkg7bpgfxtNZRxReJxaXzvebb6TfNtcaFmiuZ8LUXkcbLqgfM2O2Nne9Y9LkKzQoWCWMU1OWY3SaM9MkS5SYO3V8gveJ9s/kisspng-philadelphia-phillies-mlb-world-series-baseball-cl-phillies-cliparts-5aaacac532bcd4.2024985415211424692078.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/phi.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "WSH",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Washington_Nationals.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/wsh.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "CHC",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Chicago_Cubs.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/chc.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "CIN",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Cincinnati_Reds.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/cin.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "MIL",
-        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/b/b8/Milwaukee_Brewers_logo.svg/1200px-Milwaukee_Brewers_logo.svg.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/mil.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "PIT",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Pittsburgh_Pirates.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/pit.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "STL",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/StLouis_Cardinals.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/stl.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "ARI",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Arizona_Diamondbacks.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/ari.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "COL",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/Colorado_Rockies.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/col.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "LAD",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/LosAngeles_Dodgers.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/lad.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "SD",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/SanDiego_Padres.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/sd.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     },
     {
         "abbv": "SF",
-        "logo": "http://www.capsinfo.com/images/MLB_Team_Logos/SanFrancisco_Giants.png"
+        "logo": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/scoreboard/sf.png&scale=crop&cquality=40&location=origin&w=64&h=64"
     }
 ]
 
@@ -523,7 +523,21 @@ function mergeMLBData()
             // add game data
             mlbGameOBJ.game = gameData.game;
             mlbGameOBJ.favoriteTeam = "N/A";
+            mlbGameOBJ.favoriteNum = 0;
+            mlbGameOBJ.calcFavoriteFull = "N/A";
+            mlbGameOBJ.calcSpreadFull = 0;
+            mlbGameOBJ.calcFavoriteAdj = "N/A";
+            mlbGameOBJ.calcSpreadAdj = 0;
+            mlbGameOBJ.calcFavoriteFinal = "N/A";
+            mlbGameOBJ.calcSpreadFinal = 0;
+            mlbGameOBJ.pickFull = "X";
+            mlbGameOBJ.pickAdj = "X";
+            mlbGameOBJ.strengthFull = "X";
+            mlbGameOBJ.strengthAdj = "X";
+            mlbGameOBJ.pickFinal = "X";
+            mlbGameOBJ.strengthFinal = "X";
 
+            // for each game found with odds
             mlbOdds.forEach(function(odds)
             {
                 // get odds and game dates
@@ -539,33 +553,115 @@ function mergeMLBData()
                 {
                     // get fanduel object from bookmakers array
                     var fanduelOdds = odds.bookmakers.filter(books => books.key === "fanduel")[0];
-                    var fanduelSpread = fanduelOdds.markets.filter(market => market.key === "spreads")[0];
+                    var fanduelSpread = fanduelOdds !== undefined ? fanduelOdds.markets.filter(market => market.key === "spreads")[0] : null;
 
                     // check if spread available
-                    if(fanduelSpread !== undefined)
+                    if(fanduelSpread !== null && fanduelSpread !== undefined)
                     {
                         // get spread of home team, get favorite
                         var homeTeamSpread = fanduelSpread.outcomes.filter(team => team.name === gameHome)[0].point;
                         var spreadFav = homeTeamSpread < 0 ? fanduelSpread.outcomes.filter(team => team.name === gameHome)[0].name : fanduelSpread.outcomes.filter(team => team.name !== gameHome)[0].name;
                         var spreadNum = homeTeamSpread < 0 ? fanduelSpread.outcomes.filter(team => team.name === gameHome)[0].point : fanduelSpread.outcomes.filter(team => team.name !== gameHome)[0].point;
 
+                        // get abbv from odds full team name
+                        var spreadFavAbbv = spreadFav === gameHome ? gameData.game.home.abbr : gameData.game.away.abbr;
+
                         // add favorite to array
-                        mlbGameOBJ.favoriteTeam = spreadFav;
+                        mlbGameOBJ.favoriteTeam = spreadFavAbbv;
                         mlbGameOBJ.favoriteNum = spreadNum;
                     }
                 }
             })
 
+            // get home and away full season games - all games
+            var homeFull = fullSeason.filter(obj => { return (obj.homeTeam.abbv === gameData.game.home.abbr && new Date(obj.gameDate) < new Date(gameData.game.scheduled)) || (obj.awayTeam.abbv === gameData.game.home.abbr && new Date(obj.gameDate) < new Date(gameData.game.scheduled))});
+            var awayFull = fullSeason.filter(obj => { return (obj.homeTeam.abbv === gameData.game.away.abbr && new Date(obj.gameDate) < new Date(gameData.game.scheduled)) || (obj.awayTeam.abbv === gameData.game.away.abbr && new Date(obj.gameDate) < new Date(gameData.game.scheduled))});
+
+            // get home and away records
+            var homeRecord = gameData.game.home.win / (gameData.game.home.win + gameData.game.home.loss);
+            var awayRecord = gameData.game.away.win / (gameData.game.away.win + gameData.game.away.loss);
+
+            // get home and away full season games - adjusted based on record
+            var homeAdj = awayRecord < 0.5 ? homeFull.filter(obj => { return obj.homeTeam.abbv === gameData.game.home.abbr ? obj.awayTeam.record < 0.5 : obj.homeTeam.record < 0.5 }) : homeFull.filter(obj => { return obj.homeTeam.abbv === gameData.game.home.abbr ? obj.awayTeam.record >= 0.5 : obj.homeTeam.record >= 0.5 });
+            var awayAdj = homeRecord < 0.5 ? awayFull.filter(obj => { return obj.homeTeam.abbv === gameData.game.away.abbr ? obj.awayTeam.record < 0.5 : obj.homeTeam.record < 0.5 }) : awayFull.filter(obj => { return obj.homeTeam.abbv === gameData.game.away.abbr ? obj.awayTeam.record >= 0.5 : obj.homeTeam.record >= 0.5 });
+
+            // declare home/away variables
+            var home_snFull, away_snFull, home_snAdj, away_snAdj;
+
+            // compile season score, get spread - full
+            if(homeFull.length > 0 && awayFull.length > 0)
+            {
+                var homeScoreTot = 0, awayScoreTot = 0;
+                homeFull.forEach(function(homeGame)
+                {
+                    homeScoreTot += gameData.game.home.abbr === homeGame.homeTeam.abbv ? homeGame.homeTeam.score : homeGame.awayTeam.score;
+                });
+                awayFull.forEach(function(awayGame)
+                {
+                    awayScoreTot += gameData.game.away.abbr === awayGame.homeTeam.abbv ? awayGame.homeTeam.score : awayGame.awayTeam.score;
+                });
+
+                home_snFull = homeScoreTot / homeFull.length;
+                away_snFull = awayScoreTot / awayFull.length;
+
+                mlbGameOBJ.calcSpreadFull = Math.abs(home_snFull - away_snFull);
+                mlbGameOBJ.calcFavoriteFull = home_snFull > away_snFull ? gameData.game.home.abbr : gameData.game.away.abbr;
+            }
+
+            // compile season score, get spread - adj
+            if(homeAdj.length > 0 && awayAdj.length > 0)
+            {
+                var homeScoreTot = 0, awayScoreTot = 0;
+                homeAdj.forEach(function(homeGame)
+                {
+                    homeScoreTot += gameData.game.home.abbr === homeGame.homeTeam.abbv ? homeGame.homeTeam.score : homeGame.awayTeam.score;
+                });
+                awayAdj.forEach(function(awayGame)
+                {
+                    awayScoreTot += gameData.game.away.abbr === awayGame.homeTeam.abbv ? awayGame.homeTeam.score : awayGame.awayTeam.score;
+                });
+
+                home_snAdj = homeScoreTot / homeAdj.length;
+                away_snAdj = awayScoreTot / awayAdj.length;
+
+                mlbGameOBJ.calcSpreadAdj = Math.abs(home_snAdj - away_snAdj);
+                mlbGameOBJ.calcFavoriteAdj = home_snAdj > away_snAdj ? gameData.game.home.abbr : gameData.game.away.abbr;
+            }
+
+            // put 70-30 weight to get final spread
+            if(mlbGameOBJ.calcSpreadFull !== 0 && mlbGameOBJ.calcSpreadAdj !== 0)
+            {
+                var home_snFinal = (home_snFull * .30) + (home_snAdj * .70);
+                var away_snFinal = (away_snFull * .30) + (away_snAdj * .70);
+
+                mlbGameOBJ.calcSpreadFinal = Math.abs(home_snFinal - away_snFinal);
+                mlbGameOBJ.calcFavoriteFinal = home_snFinal > away_snFinal ? gameData.game.home.abbr : gameData.game.away.abbr;
+            }
+
+            // calculate bet picks
+            if(mlbGameOBJ.favoriteNum !== 0 && mlbGameOBJ.calcSpreadFull !== 0)
+            {
+                var spreadDiff = mlbGameOBJ.calcFavoriteFull === mlbGameOBJ.favoriteTeam ? Math.abs(Math.abs(mlbGameOBJ.calcSpreadFull) - Math.abs(mlbGameOBJ.favoriteNum)) : Math.abs(Math.abs(mlbGameOBJ.calcSpreadFull) + Math.abs(mlbGameOBJ.favoriteNum));
+                mlbGameOBJ.pickFull = spreadDiff < 1 ? "T" : spreadDiff >= 1 && mlbGameOBJ.calcFavoriteFull === mlbGameOBJ.favoriteTeam && Math.abs(mlbGameOBJ.calcSpreadFull) - Math.abs(mlbGameOBJ.favoriteNum) > 0 ? "C" : "N";
+                mlbGameOBJ.strengthFull = spreadDiff < 1 ? "T" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
+            }
+
+            if(mlbGameOBJ.favoriteNum !== 0 && mlbGameOBJ.calcSpreadFull !== 0)
+            {
+                var spreadDiff = mlbGameOBJ.calcFavoriteAdj === mlbGameOBJ.favoriteTeam ? Math.abs(Math.abs(mlbGameOBJ.calcSpreadAdj) - Math.abs(mlbGameOBJ.favoriteNum)) : Math.abs(Math.abs(mlbGameOBJ.calcSpreadAdj) + Math.abs(mlbGameOBJ.favoriteNum));
+                mlbGameOBJ.pickAdj = spreadDiff < 1 ? "T" : spreadDiff >= 1 && mlbGameOBJ.calcFavoriteAdj === mlbGameOBJ.favoriteTeam && Math.abs(mlbGameOBJ.calcSpreadFull) - Math.abs(mlbGameOBJ.favoriteNum) > 0 ? "C" : "N";
+                mlbGameOBJ.strengthAdj = spreadDiff < 1 ? "T" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
+            }
+
+            if(mlbGameOBJ.pickFull !== "X" && mlbGameOBJ.pickAdj !== "X")
+            {
+                var spreadDiff = mlbGameOBJ.calcFavoriteFinal === mlbGameOBJ.favoriteTeam ? Math.abs(Math.abs(mlbGameOBJ.calcSpreadFinal) - Math.abs(mlbGameOBJ.favoriteNum)) : Math.abs(Math.abs(mlbGameOBJ.calcSpreadFinal) + Math.abs(mlbGameOBJ.favoriteNum));
+                mlbGameOBJ.pickFinal = spreadDiff < 1 ? "TOO CLOSE" : spreadDiff >= 1 && mlbGameOBJ.calcFavoriteFinal === mlbGameOBJ.favoriteTeam && Math.abs(mlbGameOBJ.calcSpreadFinal) - Math.abs(mlbGameOBJ.favoriteNum) > 0 ? "COVER" : "NOT COVER";
+                mlbGameOBJ.strengthFinal = spreadDiff < 1 ? "T" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
+            }
+
             mlbGames.push(mlbGameOBJ);
         })
-
-        // iterate over each game
-        fullSeason.forEach(function(game)
-        {
-            // get date before current game date
-            var filterDate = new Date(game.gameDate);
-            filterDate.setDate(filterDate.getDate() - 1);
-        });
 
         displayGameData();
     }
@@ -583,6 +679,11 @@ function displayGameData()
             var homeLogo = mlbImages.filter(mlbLogo => mlbLogo.abbv === mlbGame.game.home.abbr)[0].logo;
             var awayLogo = mlbImages.filter(mlbLogo => mlbLogo.abbv === mlbGame.game.away.abbr)[0].logo;
 
+            // get game spread
+            var homeNameFull = mlbGame.game.home.market + " " + mlbGame.game.home.name;
+            var favoriteTeamAbbv = mlbGame.favoriteTeam !== "N/A" ? mlbGame.favoriteTeam === homeNameFull ? mlbGame.game.home.abbr : mlbGame.game.away.abbr : "N/A";
+            var spreadText = favoriteTeamAbbv !== "N/A" ? favoriteTeamAbbv + " " + mlbGame.favoriteNum : "N/A";
+
             // get current game
             var $currentGame = $game.find('.game-container');
 
@@ -592,19 +693,50 @@ function displayGameData()
             var homeTeamIMG = $currentGame.find('.mlb-team-img').eq(1).find("img");
             homeTeamIMG.attr("src", awayLogo);
 
-            // get game spread
-            var homeNameFull = mlbGame.game.home.market + " " + mlbGame.game.home.name;
-            var favoriteTeamAbbv = mlbGame.favoriteTeam !== "N/A" ? mlbGame.favoriteTeam === homeNameFull ? mlbGame.game.home.abbr : mlbGame.game.away.abbr : "N/A";
-            var spreadText = favoriteTeamAbbv !== "N/A" ? favoriteTeamAbbv + " " + mlbGame.favoriteNum : "N/A";
-
             // set game spread
-            var gameSpread = $currentGame.find('.mlb-spread').eq(0);
+            var gameSpread = $currentGame.find('.mlb-score').eq(1);
             gameSpread.text(spreadText);
+
+            // set pick boxes
+            var fullPickText = $currentGame.find('.bet-text.sp-full-text');
+            fullPickText.text(mlbGame.pickFull);
+            var adjPickText = $currentGame.find('.bet-text.sp-adj-text');
+            adjPickText.text(mlbGame.pickAdj);
+            var finalPickText = $currentGame.find('.bet-text-final.sp-final-text');
+            finalPickText.text(mlbGame.pickFinal);
+
+            // set tooltips
+            fullPickText.append(displayToolTip(mlbGame));
 
             // add game template to main game div
             $("#games").append($game);
         });
     })
+}
+
+function displayToolTip(mlbGame)
+{
+    var tooltipHTML = document.createElement("span");
+    tooltipHTML.classList.add("bet-tooltip");
+
+    var tooltipBR = document.createElement("br");
+
+    var tooltipSpan1 = document.createElement("span");
+    var tooltipText1 = "Calculated: " + mlbGame.calcFavoriteFull + " " + mlbGame.calcSpreadFull.toFixed(3);
+    tooltipSpan1.textContent = tooltipText1;
+
+    var tooltipSpan2 = document.createElement("span");
+    var tooltipText2 = "Odds: " + mlbGame.favoriteTeam + " " + mlbGame.favoriteNum.toFixed(1);
+    tooltipSpan2.textContent = tooltipText2;
+
+    var tooltipSpan3 = document.createElement("span");
+    var resultText = mlbGame.pickFull === "X" ? "No Data" : mlbGame.pickFull === "T" ? "Too Close" : mlbGame.pickFull === "N" ? "Not Cover" : "Cover";
+    var tooltipText3 = "Result: " + resultText;
+    tooltipSpan3.textContent = tooltipText3;
+
+    tooltipHTML.innerHTML = tooltipSpan1.outerHTML + tooltipBR.outerHTML + tooltipSpan2.outerHTML + tooltipBR.outerHTML + tooltipSpan3.outerHTML;
+
+    return tooltipHTML.outerHTML;
 }
 // #endregion
 
@@ -681,7 +813,7 @@ function MLB_JSON_SEASON_CALL()
 {
     return new Promise(function(resolve, reject)
     {
-        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_season_" + $("#years").val() + ".json")
+        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_season_" + new Date().getFullYear() + ".json")
         .done(resolve)
         .fail(reject);
     });

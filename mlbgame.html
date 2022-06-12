@@ -1,39 +1,43 @@
 <div class="game-container">
-    <div class="team-container">
-        <span class="mlb-team-img">
-            <img src="img/home_team.png"/>
-        </span>
-        <span class="mlb-at-sign">
-            @
-        </span>
-        <span class="mlb-team-img">
+    <div class="mlb-grid">
+        <span id="mlb-team-img-away" class="mlb-team-img">
             <img src="img/away_team.png"/>
         </span>
-        <div class="mlb-spread">
-            Spread
+        <div id="mlb-team-score-away"  class="mlb-score">
+            Score/Time
         </div>
-        <div class="bet-left-container">
-            <div class="bet-left-text">
-                Full
-            </div>
-            <div class="bet-left-text">
-                Adj
-            </div>
+        <span id="mlb-team-img-home" class="mlb-team-img">
+            <img src="img/home_team.png"/>
+        </span>
+        <span id="mlb-team-score-home" class="mlb-score">
+            Score/Spread
+        </span>
+        <div id="mlb-bases">
+            <span id="mlb-inning">TEST</span>
         </div>
-        <div class="bet-box-container">
-            <div class="bet-box sp-l1-full">
-                <span class="bet-text sp-l1-full-text">?</span>
-                <span class="bet-tooltip sp-l1-full-tip"></span>
-            </div>
-            <div class="bet-box sp-l1-adj">
-                <span class="bet-text sp-l1-adj-text">?</span>
-                <span class="bet-tooltip sp-l1-adj-tip"></span>
-            </div>
-        </div>
-        <div class="bet-box-container-final">
-            <div class="bet-box-final sp-final">
-                <span class="bet-text-final sp-final-text">?</span>
-                <span class="bet-tooltip sp-final-tip"></span>
+        <div id="mlb-bets">
+            <div class="team-container">
+                <div class="bet-left-container">
+                    <div class="bet-left-text">
+                        Full
+                    </div>
+                    <div class="bet-left-text">
+                        Adj
+                    </div>
+                </div>
+                <div class="bet-box-container">
+                    <div class="bet-box sp-l1-full">
+                        <span class="bet-text sp-full-text">?</span>
+                    </div>
+                    <div class="bet-box sp-l1-adj">
+                        <span class="bet-text sp-adj-text">?</span>
+                    </div>
+                </div>
+                <div class="bet-box-container-final">
+                    <div class="bet-box-final sp-final">
+                        <span class="bet-text-final sp-final-text">?</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
