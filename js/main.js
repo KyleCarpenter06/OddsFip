@@ -19,6 +19,7 @@ var seasonEndDate;
 
 // api
 var MLB_API_KEYS = ["bk87n7t2wdmzh89v64rnwq2t", "apnq8u2agmukcya9uhr22sp9", "9wcwthcuxvt8ypbyckma4nbn", "txxs95hnus8hqz2mmqtt4ezj", "skh58g4gu5pfuy8h9s5edug7", "9wcc4j65v4zt6zvp7e2af9a4", "fw8748cmq2gn7dm5vhut5m6m", "h7wygfcaf7xzc2kggvwwna68", "3hd4ts5q3p2bgxu5hym6t92d", "6fd5hn7kb3murhtfqmhm287p", "6zvtersztw23bu8gyxsner8z", "xmdccsbwaqsrg46yaz4x94ze", "ch6zn5fp2rtm5jte9n9gc42m"];
+
 var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
 var apiURL;
@@ -35,6 +36,7 @@ var currentGame;
 var mlbOdds;
 var mlbGames = [];
 var mlbGameData;
+var mlbSeasonData;
 
 // mlb teams
 let mlbImages = [
@@ -296,7 +298,7 @@ let BetData = class
 $(async function()
 {
     // call initial functions, sequence using await
-    await Promise.all([getTodaysDate(), callOddsAPI(), call_SR_API_GAMES()]);
+    await Promise.all([getTodaysDate(), callOddsAPI(), call_SR_API_GAMES(), callJSON()]);
     
     // then merge and display data
     mergeMLBData();
@@ -364,6 +366,150 @@ function callS3()
     }, false);
 }
 
+async function getData2022()
+{
+    // call date api function, wait for response
+    await Promise.all([getAvailableKeys(), call_SR_API_DATE()]);
+
+    // get games from mlb season variable
+    var games = mlbSeasonData.games; 
+
+    // if season has games
+    if(games)
+    {
+        // sort full season
+        games.sort(function(a, b) 
+        {
+            var keyA = new Date(a.scheduled), keyB = new Date(b.scheduled);
+    
+            // compare the 2 dates
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+
+        // get start & end date, set start date to previous date to ensure all games
+        seasonStartDate = new Date(new Date(games[0].scheduled).setHours(0, 0, 0));
+        seasonStartDate = new Date(seasonStartDate.setDate(seasonStartDate.getDate() - 1));
+        seasonEndDate = new Date(games[games.length - 1].scheduled);
+
+        // for each game, add game id to array
+        games.forEach(function(game)
+        {
+            var gameIDOBJ = new Object();
+            gameIDOBJ.id = game.id;
+            gameIDOBJ.game = game;
+            gameIDOBJ.found = false;
+            gameIDs.push(gameIDOBJ);
+        });
+
+        // set date object to current date, then set to yesterday
+        dateObj = new Date();
+        dateObj.setDate(dateObj.getDate() - 1);
+
+        // loop until date is before the season start date
+        do
+        {
+            // format date for api call
+            dateStr = formatDateToString(dateObj);
+
+            // call api function - wait specific amount of time based on # of api keys to avoid 403 error
+            await Promise.all([call_SR_API_GAMES()]);
+            getPlayerData();
+            apiCallRotator();
+
+            // finally, decrease date by one day
+            dateObj.setDate(dateObj.getDate() - 1);
+        }
+        while(dateObj >= seasonStartDate);
+    }
+    else
+    {
+        // throw alert
+        alert("Error: No Games Found, Cannot Set Start Date")
+    }
+}
+
+async function getAvailableKeys()
+{
+    // iterate over each api key
+    for(let i = 0; i < MLB_API_KEYS.length; i++)
+    {
+        // wait one second
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // call api test
+        await SR_API_CALL_TEST()
+        .catch((error) => console.log("Error Keys:" + error.status + " - " + error.statusText));
+        
+        // call rotator
+        current_API_Key = MLB_API_KEYS[i];
+    }
+
+    removeBadKeys();
+}
+
+function getPlayerData()
+{
+    // if day has games
+    if(typeof(mlbGameData.league.games) != "undefined")
+    {
+        // loop over each game, add to full season array
+        mlbGameData.league.games.forEach(function(game)
+        {
+            // find game id to only include regular season games
+            gameIDs.forEach(function(gameID)
+            {
+                if(gameID.id === game.game.id)
+                {
+                    // if not all-star game and game is not listed as cancelled
+                    if(!(game.game.home.abbr === "NL" || game.game.away.abbr === "NL" || game.game.status === "canceled" || game.game.status === "unnecessary") && new Date(Date.parse(game.game.scheduled)) < new Date())
+                    {
+                        // set game id flag to found
+                        gameID.found = true;
+
+                        var homeTeam = new MLB_Team();
+                        var awayTeam = new MLB_Team();
+                        var mlbGame = new MLB_Game(homeTeam, awayTeam);
+                        mlbGame.gameID = game.game.id;
+                        mlbGame.gameDate = game.game.scheduled;
+                        currentGame = game;
+
+                        homeTeam.abbv = game.game.home.abbr;
+                        awayTeam.abbv = game.game.away.abbr;
+
+                        homeTeam.teamFullName = game.game.home.market + " " + game.game.home.name;
+                        awayTeam.teamFullName = game.game.away.market + " " + game.game.away.name;
+
+                        homeTeam.record = game.game.home.win / (game.game.home.win + game.game.home.loss);
+                        awayTeam.record = game.game.away.win / (game.game.away.win + game.game.away.loss);
+
+                        mlbGame.homeTeam.score = game.game.home.runs;
+                        mlbGame.awayTeam.score = game.game.away.runs;
+
+                        homeTeam.stPitcherName = typeof game.game.home.starting_pitcher !== 'undefined' ? game.game.home.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name : "N/A";
+                        homeTeam.stPitcherIP = typeof game.game.home.statistics.pitching !== 'undefined' ? game.game.home.statistics.pitching.starters.ip_2 : 0;
+                        homeTeam.stPitcherRA = typeof game.game.home.statistics.pitching !== 'undefined' ? game.game.home.statistics.pitching.starters.runs.earned : 0;
+
+                        awayTeam.stPitcherName = typeof game.game.away.starting_pitcher !== 'undefined' ? game.game.away.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name : "N/A";
+                        awayTeam.stPitcherIP = typeof game.game.away.statistics.pitching !== 'undefined' ? game.game.away.statistics.pitching.starters.ip_2 : 0;
+                        awayTeam.stPitcherRA = typeof game.game.away.statistics.pitching !== 'undefined' ? game.game.away.statistics.pitching.starters.runs.earned : 0;
+
+                        homeTeam.bullpenIP = typeof game.game.home.statistics.pitching !== 'undefined' ? typeof game.game.home.statistics.pitching.bullpen !== 'undefined' ? game.game.home.statistics.pitching.bullpen.ip_2 : 0 : 0;
+                        awayTeam.bullpenIP = typeof game.game.away.statistics.pitching !== 'undefined' ?  typeof game.game.away.statistics.pitching.bullpen !== 'undefined' ? game.game.away.statistics.pitching.bullpen.ip_2 : 0 : 0;
+                        homeTeam.bullpenRA = typeof game.game.home.statistics.pitching !== 'undefined' ? typeof game.game.home.statistics.pitching.bullpen !== 'undefined' ? game.game.home.statistics.pitching.bullpen.runs.earned : 0 : 0;
+                        awayTeam.bullpenRA = typeof game.game.away.statistics.pitching !== 'undefined' ? typeof game.game.away.statistics.pitching.bullpen !== 'undefined' ? game.game.away.statistics.pitching.bullpen.runs.earned : 0 : 0;
+
+                        fullSeasonAPI.push(mlbGame);
+                    }
+                }
+            });
+        });
+    }
+}
+// #endregion
+
+// #region GAME DATA functions
 function mergeMLBData()
 {
     // check if mlb games today
@@ -413,11 +559,19 @@ function mergeMLBData()
             mlbGames.push(mlbGameOBJ);
         })
 
-        getPlayerData();
+        // iterate over each game
+        fullSeason.forEach(function(game)
+        {
+            // get date before current game date
+            var filterDate = new Date(game.gameDate);
+            filterDate.setDate(filterDate.getDate() - 1);
+        });
+
+        displayGameData();
     }
 }
 
-function getPlayerData()
+function displayGameData()
 {
     mlbGames.forEach(function(mlbGame)
     {
@@ -511,14 +665,51 @@ function ODDS_API_CALL()
 }
 // #endregion
 
+// #region SEASON & BET JSON FUNCTIONS
+async function callJSON()
+{
+    // call mlb bet & game data from amazon
+    await MLB_JSON_SEASON_CALL()
+    .then(function(response)
+    {
+        fullSeason = response;
+    })
+    .catch((error) => alert("Error JSON: " + error.status + " - " + error.statusText));
+}
+
+function MLB_JSON_SEASON_CALL()
+{
+    return new Promise(function(resolve, reject)
+    {
+        $.getJSON("https://oddsflip.s3.us-west-2.amazonaws.com/mlb_season_" + $("#years").val() + ".json")
+        .done(resolve)
+        .fail(reject);
+    });
+}
+// #endregion
+
 // #region MLB SR API CALLS
+async function call_SR_API_DATE()
+{   
+    if(typeof config !== "undefined")
+    {
+        await SR_API_CALL_DATE()
+        .then((response) => mlbAPIDateResponse(response))
+        .catch((error) => mlbAPIError(error));
+    }
+    else
+    {
+        alert("Error: config.js file is missing.")
+    }
+}
+
 async function call_SR_API_GAMES()
 {   
     if(typeof config !== "undefined")
     {
         await SR_API_CALL_GAMES()
-        .then((response) => mlbAPIResponse(response))
-        .catch((error) => mlbAPIErrorGames(error));
+        .then((response) => mlbAPIGameResponse(response))
+        .catch((error) => mlbAPIError(error));
     }
     else
     {
@@ -526,15 +717,34 @@ async function call_SR_API_GAMES()
     }
 }
 
-function mlbAPIResponse(response)
+function mlbAPIDateResponse(response)
+{
+    mlbSeasonData = response;
+}
+
+function mlbAPIGameResponse(response)
 {
     mlbGameData = response;
 }
 
-function mlbAPIErrorGames(error)
+function mlbAPIError(error)
 {
     // display error and date
     console.log("Error Games:" + error.status + " - " + error.statusText + " on date " + dateStr);
+}
+
+function SR_API_CALL_TEST()
+{
+    apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/league/seasons.json?api_key=" + current_API_Key;
+    
+    return SR_API_CALL();
+}
+
+function SR_API_CALL_DATE()
+{
+    apiURL = "https://elitefeats-cors-anywhere.herokuapp.com/https://api.sportradar.us/mlb/trial/v7/en/games/" + new Date().getFullYear() + "/REG/schedule.json?api_key=" + current_API_Key;
+    
+    return SR_API_CALL();
 }
 
 function SR_API_CALL_GAMES()
@@ -606,6 +816,27 @@ function SR_API_CALL()
 // #endregion
 
 // #region OTHER FUNCTIONS
+function apiCallRotator()
+{
+    // increment api key index, or set to zero if reached end of array
+    current_API_Index = current_API_Index >= MLB_API_KEYS.length - 1 ? 0 : current_API_Index + 1;
+        
+    // set current api key
+    current_API_Key = MLB_API_KEYS[current_API_Index];
+}
+
+function removeBadKeys()
+{
+    badAPIKeys.forEach(function(badKey)
+    {
+        // remove bad key from api key array
+        MLB_API_KEYS = MLB_API_KEYS.filter(key => key !== badKey);
+
+        // display removed key in console
+        console.log("Removed bad key: " + badKey);
+    });
+}
+
 function formatDateToString(date)
 {
     let month = (date.getMonth() + 1).toString().padStart(2, '0');
