@@ -32,6 +32,8 @@ var odds_api_key = config.ODDS_API_KEY;
 var bucketName = "oddsflip";
 var bucketRegion = "us-west-2";
 var IdentityPoolId = "us-west-2:652c2350-c216-4149-a109-9d651983894a";
+var jsonOBJ;
+var jsonSTR;
 
 // other
 var currentGame;
@@ -306,7 +308,7 @@ $(async function()
     mergeMLBData();
 
     // testing
-    getS3();
+    await Promise.all([editJSON(), putS3()]);
     //callS3();
 });
 
@@ -369,7 +371,7 @@ function callS3()
     }, false);
 }
 
-function getS3()
+async function getS3()
 {
     AWS.config.update(
     {
@@ -386,7 +388,7 @@ function getS3()
         Key: "mlb_season_2022.json"
        };
 
-    s3.getObject(params, function(err, data) 
+    await s3.getObject(params, function(err, data) 
     {
         if (err) console.log(err, err.stack); // an error occurred
         else // successful response
@@ -399,9 +401,53 @@ function getS3()
                 str += String.fromCharCode(parseInt(dataU8[i]));
             }
 
-            var jsonData = JSON.parse(str)
+            jsonOBJ = JSON.parse(str)
         }           
+    }).Promise();
+}
+
+function editJSON()
+{
+    //jsonOBJ.push({"theTeam":[{"teamId":"1","status":"pending"},
+    //{"teamId":"2","status":"member"},{"teamId":"3","status":"member"}]});
+
+    //jsonData = fullSeason.push({"theTeam":[{"teamId":"1","status":"pending"},
+    //{"teamId":"2","status":"member"},{"teamId":"3","status":"member"}]});
+
+    jsonSTR = JSON.stringify(fullSeason);
+}
+
+function putS3()
+{
+    AWS.config.update(
+    {
+        region: bucketRegion,
+        credentials: new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: IdentityPoolId
+        })
     });
+
+    var s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
+    var bucket = new AWS.S3({
+        apiVersion: '2006-03-01',
+        params: {Bucket: bucketName}
+    });
+
+    var params = {
+        Key: "mlb_season_2022_edit.json",
+        ContentType: "application/json",
+        Body: jsonSTR,
+        ACL: 'public-read'
+    };
+
+    bucket.putObject(params, function(err, data) {
+        if (err) {
+            results.innerHTML = 'ERROR: ' + err;
+        } else {
+            alert("Success!");
+        }
+    }); 
 }
 
 async function getData2022()
