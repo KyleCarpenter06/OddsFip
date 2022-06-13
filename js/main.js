@@ -304,6 +304,7 @@ $(async function()
     mergeMLBData();
 
     // testing
+    getS3();
     //callS3();
 });
 
@@ -364,6 +365,41 @@ function callS3()
             results.innerHTML = 'Nothing to upload.';
         }
     }, false);
+}
+
+function getS3()
+{
+    AWS.config.update(
+    {
+        region: bucketRegion,
+        credentials: new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: IdentityPoolId
+        })
+    });
+
+    var s3 = new AWS.S3({apiVersion: '2006-03-01'});
+
+    var params = {
+        Bucket: "oddsflip", 
+        Key: "mlb_season_2022.json"
+       };
+
+    s3.getObject(params, function(err, data) 
+    {
+        if (err) console.log(err, err.stack); // an error occurred
+        else // successful response
+        {
+            var dataU8 = data.Body;
+
+            var str = "";
+            for (var i = 0; i < dataU8.length; i++) 
+            {
+                str += String.fromCharCode(parseInt(dataU8[i]));
+            }
+
+            var jsonData = JSON.parse(str)
+        }           
+    });
 }
 
 async function getData2022()
