@@ -308,7 +308,7 @@ $(async function()
     mergeMLBData();
 
     // testing
-    await Promise.all([editJSON(), putS3()]);
+    //await Promise.all([editJSON(), putS3()]);
     //callS3();
 });
 
@@ -765,7 +765,7 @@ function displayGameData()
 
             // get game spread
             var homeNameFull = mlbGame.game.home.market + " " + mlbGame.game.home.name;
-            var favoriteTeamAbbv = mlbGame.favoriteTeam !== "N/A" ? mlbGame.favoriteTeam === homeNameFull ? mlbGame.game.home.abbr : mlbGame.game.away.abbr : "N/A";
+            var favoriteTeamAbbv = mlbGame.favoriteTeam !== "N/A" ? mlbGame.favoriteTeam : "N/A";
             var spreadText = favoriteTeamAbbv !== "N/A" ? favoriteTeamAbbv + " " + mlbGame.favoriteNum : "N/A";
 
             // get current game
