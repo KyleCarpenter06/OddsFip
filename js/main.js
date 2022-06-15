@@ -26,7 +26,7 @@ var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
 var apiURL;
 var badAPIKeys = [];
-var odds_api_key = config.ODDS_API_KEY;
+var odds_api_key = config.ODDS_API_KEY2;
 
 // aws - testing
 var bucketName = "oddsflip";
@@ -308,7 +308,8 @@ $(async function()
     mergeMLBData();
 
     // testing
-    //await Promise.all([editJSON(), putS3()]);
+    await Promise.all([call_SR_API_DATE()]);
+    await Promise.all([editJSON(), putS3()]);
     //callS3();
 });
 
@@ -408,11 +409,29 @@ async function getS3()
 
 function editJSON()
 {
-    //jsonOBJ.push({"theTeam":[{"teamId":"1","status":"pending"},
-    //{"teamId":"2","status":"member"},{"teamId":"3","status":"member"}]});
+    // if current season has games
+    if(mlbSeasonData.games !== undefined)
+    {
+        // get closed games from mlb season data
+        var closedGames = mlbSeasonData.games.filter(x => x.status === "closed");
 
-    //jsonData = fullSeason.push({"theTeam":[{"teamId":"1","status":"pending"},
-    //{"teamId":"2","status":"member"},{"teamId":"3","status":"member"}]});
+        // get games missing from current json file
+        var missingGames = closedGames.filter(function(clGame){return !fullSeason.some(function(snGame){return clGame.id === snGame.gameID;});});
+
+        // create array of days missing from json file
+        var allMissingDates = missingGames.map(game => (formatDateToString(new Date(game.scheduled)) ));
+
+        // filter missing dates array to get distinct dates
+        var missingDates = allMissingDates.filter(function(item, pos){ return allMissingDates.indexOf(item) == pos });
+
+    }
+    else
+    {
+        console.log("No Games Found");
+    }
+
+    
+    
 
     jsonSTR = JSON.stringify(fullSeason);
 }
