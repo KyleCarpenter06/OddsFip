@@ -18,9 +18,9 @@ var seasonStartDate;
 var seasonEndDate;
 
 // api
-var MLB_API_KEYS = ["apnq8u2agmukcya9uhr22sp9", "9wcwthcuxvt8ypbyckma4nbn", "txxs95hnus8hqz2mmqtt4ezj", "skh58g4gu5pfuy8h9s5edug7", "9wcc4j65v4zt6zvp7e2af9a4", "fw8748cmq2gn7dm5vhut5m6m", "h7wygfcaf7xzc2kggvwwna68", "3hd4ts5q3p2bgxu5hym6t92d", "6fd5hn7kb3murhtfqmhm287p", "6zvtersztw23bu8gyxsner8z", "xmdccsbwaqsrg46yaz4x94ze", "ch6zn5fp2rtm5jte9n9gc42m"];
+var MLB_API_KEYS = [ "txxs95hnus8hqz2mmqtt4ezj", "skh58g4gu5pfuy8h9s5edug7", "9wcc4j65v4zt6zvp7e2af9a4", "fw8748cmq2gn7dm5vhut5m6m", "h7wygfcaf7xzc2kggvwwna68", "3hd4ts5q3p2bgxu5hym6t92d", "6fd5hn7kb3murhtfqmhm287p", "6zvtersztw23bu8gyxsner8z", "xmdccsbwaqsrg46yaz4x94ze", "ch6zn5fp2rtm5jte9n9gc42m"];
 
-//"bk87n7t2wdmzh89v64rnwq2t" bed key
+//"bk87n7t2wdmzh89v64rnwq2t", "apnq8u2agmukcya9uhr22sp9", "9wcwthcuxvt8ypbyckma4nbn", bed keys
 
 var current_API_Key = MLB_API_KEYS[0];
 var current_API_Index = 0;
@@ -302,6 +302,7 @@ let BetData = class
 $(async function()
 {
     // call initial functions, sequence using await
+    // first get date, then get odds, get todays games, get mlb stats
     await Promise.all([getTodaysDate(), callOddsAPI(), call_SR_API_GAMES(), callJSON()]);
     
     // then merge and display data
@@ -309,8 +310,9 @@ $(async function()
 
     // testing
     await Promise.all([call_SR_API_DATE()]);
-    await Promise.all([editJSON(), putS3()]);
-    //callS3();
+    await Promise.all([editJSON()]);
+    await Promise.all([putS3()]);
+    //getAvailableKeys();
 });
 
 function getTodaysDate()
@@ -326,88 +328,28 @@ function getTodaysDate()
 // #endregion
 
 // #region TEST
-function callS3()
+async function getAvailableKeys()
 {
-    AWS.config.update(
-        {
-            region: bucketRegion,
-            credentials: new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: IdentityPoolId
-            })
-        });
+    // iterate over each api key
+    for(let i = 0; i < MLB_API_KEYS.length; i++)
+    {
+        // wait one second
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-    var bucket = new AWS.S3({
-        apiVersion: '2006-03-01',
-        params: {Bucket: bucketName}
-    });
+        // call api test
+        await SR_API_CALL_TEST()
+        .catch((error) => console.log("Error Keys:" + error.status + " - " + error.statusText));
+        
+        // call rotator
+        current_API_Key = MLB_API_KEYS[i];
+    }
 
-    var fileChooser = document.getElementById('upload');
-    var button = document.getElementById('submit');
-    var results = document.getElementById('results');
-    button.addEventListener('click', function() {
+    removeBadKeys();
 
-        var file = fileChooser.files[0];
-
-        if (file) {
-
-            results.innerHTML = '';
-            var objKey = 'testing/' + file.name;
-            var params = {
-                Key: objKey,
-                ContentType: file.type,
-                Body: file,
-                ACL: 'public-read'
-            };
-
-            bucket.putObject(params, function(err, data) {
-                if (err) {
-                    results.innerHTML = 'ERROR: ' + err;
-                } else {
-                    alert("Success!");
-                }
-            });
-        } else {
-            results.innerHTML = 'Nothing to upload.';
-        }
-    }, false);
+    call_SR_API_DATE();
 }
 
-async function getS3()
-{
-    AWS.config.update(
-    {
-        region: bucketRegion,
-        credentials: new AWS.CognitoIdentityCredentials({
-            IdentityPoolId: IdentityPoolId
-        })
-    });
-
-    var s3 = new AWS.S3({apiVersion: '2006-03-01'});
-
-    var params = {
-        Bucket: "oddsflip", 
-        Key: "mlb_season_2022.json"
-       };
-
-    await s3.getObject(params, function(err, data) 
-    {
-        if (err) console.log(err, err.stack); // an error occurred
-        else // successful response
-        {
-            var dataU8 = data.Body;
-
-            var str = "";
-            for (var i = 0; i < dataU8.length; i++) 
-            {
-                str += String.fromCharCode(parseInt(dataU8[i]));
-            }
-
-            jsonOBJ = JSON.parse(str)
-        }           
-    }).Promise();
-}
-
-function editJSON()
+async function editJSON()
 {
     // if current season has games
     if(mlbSeasonData.games !== undefined)
@@ -424,14 +366,40 @@ function editJSON()
         // filter missing dates array to get distinct dates
         var missingDates = allMissingDates.filter(function(item, pos){ return allMissingDates.indexOf(item) == pos });
 
+        for(let i = 0; i < missingDates.length; i++)
+        {
+            // set date for api to new missing date
+            dateStr = missingDates[i];
+
+            // wait one second
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // call api function
+            await Promise.all([call_SR_API_GAMES()]);
+
+            // add to mlb season array, if games found
+            if(typeof(mlbGameData.league.games) != "undefined")
+            {
+                // loop over each game, add to full season array
+                mlbGameData.league.games.forEach(function(game)
+                {
+                    missingGames.forEach(function(missingGame)
+                    {
+                        if(missingGame.id === game.game.id && !(game.game.home.abbr === "NL" || game.game.away.abbr === "NL" || game.game.status === "canceled" || game.game.status === "unnecessary"))
+                        {
+                            addToMLBSeason(game);
+                        }
+                    })
+                });
+            }
+            // rotate api keys
+            apiCallRotator();
+        }
     }
     else
     {
         console.log("No Games Found");
     }
-
-    
-    
 
     jsonSTR = JSON.stringify(fullSeason);
 }
@@ -533,25 +501,6 @@ async function getData2022()
     }
 }
 
-async function getAvailableKeys()
-{
-    // iterate over each api key
-    for(let i = 0; i < MLB_API_KEYS.length; i++)
-    {
-        // wait one second
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // call api test
-        await SR_API_CALL_TEST()
-        .catch((error) => console.log("Error Keys:" + error.status + " - " + error.statusText));
-        
-        // call rotator
-        current_API_Key = MLB_API_KEYS[i];
-    }
-
-    removeBadKeys();
-}
-
 function getPlayerData()
 {
     // if day has games
@@ -571,44 +520,52 @@ function getPlayerData()
                         // set game id flag to found
                         gameID.found = true;
 
-                        var homeTeam = new MLB_Team();
-                        var awayTeam = new MLB_Team();
-                        var mlbGame = new MLB_Game(homeTeam, awayTeam);
-                        mlbGame.gameID = game.game.id;
-                        mlbGame.gameDate = game.game.scheduled;
-                        currentGame = game;
-
-                        homeTeam.abbv = game.game.home.abbr;
-                        awayTeam.abbv = game.game.away.abbr;
-
-                        homeTeam.teamFullName = game.game.home.market + " " + game.game.home.name;
-                        awayTeam.teamFullName = game.game.away.market + " " + game.game.away.name;
-
-                        homeTeam.record = game.game.home.win / (game.game.home.win + game.game.home.loss);
-                        awayTeam.record = game.game.away.win / (game.game.away.win + game.game.away.loss);
-
-                        mlbGame.homeTeam.score = game.game.home.runs;
-                        mlbGame.awayTeam.score = game.game.away.runs;
-
-                        homeTeam.stPitcherName = typeof game.game.home.starting_pitcher !== 'undefined' ? game.game.home.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name : "N/A";
-                        homeTeam.stPitcherIP = typeof game.game.home.statistics.pitching !== 'undefined' ? game.game.home.statistics.pitching.starters.ip_2 : 0;
-                        homeTeam.stPitcherRA = typeof game.game.home.statistics.pitching !== 'undefined' ? game.game.home.statistics.pitching.starters.runs.earned : 0;
-
-                        awayTeam.stPitcherName = typeof game.game.away.starting_pitcher !== 'undefined' ? game.game.away.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name : "N/A";
-                        awayTeam.stPitcherIP = typeof game.game.away.statistics.pitching !== 'undefined' ? game.game.away.statistics.pitching.starters.ip_2 : 0;
-                        awayTeam.stPitcherRA = typeof game.game.away.statistics.pitching !== 'undefined' ? game.game.away.statistics.pitching.starters.runs.earned : 0;
-
-                        homeTeam.bullpenIP = typeof game.game.home.statistics.pitching !== 'undefined' ? typeof game.game.home.statistics.pitching.bullpen !== 'undefined' ? game.game.home.statistics.pitching.bullpen.ip_2 : 0 : 0;
-                        awayTeam.bullpenIP = typeof game.game.away.statistics.pitching !== 'undefined' ?  typeof game.game.away.statistics.pitching.bullpen !== 'undefined' ? game.game.away.statistics.pitching.bullpen.ip_2 : 0 : 0;
-                        homeTeam.bullpenRA = typeof game.game.home.statistics.pitching !== 'undefined' ? typeof game.game.home.statistics.pitching.bullpen !== 'undefined' ? game.game.home.statistics.pitching.bullpen.runs.earned : 0 : 0;
-                        awayTeam.bullpenRA = typeof game.game.away.statistics.pitching !== 'undefined' ? typeof game.game.away.statistics.pitching.bullpen !== 'undefined' ? game.game.away.statistics.pitching.bullpen.runs.earned : 0 : 0;
-
-                        fullSeasonAPI.push(mlbGame);
+                        // insert data, add to mlb season
+                        addToMLBSeason(game);
                     }
                 }
             });
         });
     }
+}
+// #endregion
+
+// #region MLB SEASON functions
+function addToMLBSeason(game)
+{
+    var homeTeam = new MLB_Team();
+    var awayTeam = new MLB_Team();
+    var mlbGame = new MLB_Game(homeTeam, awayTeam);
+    mlbGame.gameID = game.game.id;
+    mlbGame.gameDate = game.game.scheduled;
+    currentGame = game;
+
+    homeTeam.abbv = game.game.home.abbr;
+    awayTeam.abbv = game.game.away.abbr;
+
+    homeTeam.teamFullName = game.game.home.market + " " + game.game.home.name;
+    awayTeam.teamFullName = game.game.away.market + " " + game.game.away.name;
+
+    homeTeam.record = game.game.home.win / (game.game.home.win + game.game.home.loss);
+    awayTeam.record = game.game.away.win / (game.game.away.win + game.game.away.loss);
+
+    mlbGame.homeTeam.score = game.game.home.runs;
+    mlbGame.awayTeam.score = game.game.away.runs;
+
+    homeTeam.stPitcherName = typeof game.game.home.starting_pitcher !== 'undefined' ? game.game.home.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name : "N/A";
+    homeTeam.stPitcherIP = typeof game.game.home.statistics.pitching !== 'undefined' ? game.game.home.statistics.pitching.starters.ip_2 : 0;
+    homeTeam.stPitcherRA = typeof game.game.home.statistics.pitching !== 'undefined' ? game.game.home.statistics.pitching.starters.runs.earned : 0;
+
+    awayTeam.stPitcherName = typeof game.game.away.starting_pitcher !== 'undefined' ? game.game.away.starting_pitcher.first_name + " " + game.game.home.starting_pitcher.last_name : "N/A";
+    awayTeam.stPitcherIP = typeof game.game.away.statistics.pitching !== 'undefined' ? game.game.away.statistics.pitching.starters.ip_2 : 0;
+    awayTeam.stPitcherRA = typeof game.game.away.statistics.pitching !== 'undefined' ? game.game.away.statistics.pitching.starters.runs.earned : 0;
+
+    homeTeam.bullpenIP = typeof game.game.home.statistics.pitching !== 'undefined' ? typeof game.game.home.statistics.pitching.bullpen !== 'undefined' ? game.game.home.statistics.pitching.bullpen.ip_2 : 0 : 0;
+    awayTeam.bullpenIP = typeof game.game.away.statistics.pitching !== 'undefined' ?  typeof game.game.away.statistics.pitching.bullpen !== 'undefined' ? game.game.away.statistics.pitching.bullpen.ip_2 : 0 : 0;
+    homeTeam.bullpenRA = typeof game.game.home.statistics.pitching !== 'undefined' ? typeof game.game.home.statistics.pitching.bullpen !== 'undefined' ? game.game.home.statistics.pitching.bullpen.runs.earned : 0 : 0;
+    awayTeam.bullpenRA = typeof game.game.away.statistics.pitching !== 'undefined' ? typeof game.game.away.statistics.pitching.bullpen !== 'undefined' ? game.game.away.statistics.pitching.bullpen.runs.earned : 0 : 0;
+
+    fullSeason.push(mlbGame);
 }
 // #endregion
 
@@ -1011,7 +968,7 @@ function SR_API_CALL()
             if (this.readyState === 4 && this.status === 200)
             {
                 // get amount of calls left, call function
-                //getAPIQuota(xhr.getResponseHeader("X-Plan-Quota-Current"), xhr.getResponseHeader("X-Final-Url"));
+                getAPIQuota(xhr.getResponseHeader("X-Plan-Quota-Current"), xhr.getResponseHeader("X-Final-Url"));
 
                 // return data
                 resolve(JSON.parse(this.responseText));
@@ -1027,7 +984,7 @@ function SR_API_CALL()
             else if (this.readyState === 4 && this.status !== 200)
             {
                 // get amount of calls left, call function
-                //getAPIQuota(1000, xhr.getResponseHeader("X-Final-Url"));
+                getAPIQuota(1000, xhr.getResponseHeader("X-Final-Url"));
 
                 // return other error
                 reject({
@@ -1051,6 +1008,20 @@ function SR_API_CALL()
 // #endregion
 
 // #region OTHER FUNCTIONS
+function getAPIQuota(quota, apiUrl)
+{
+    // get current quota and apikey from apiurl
+    var quotaCurrent = parseInt(quota);
+    var apiKey = apiUrl.split("api_key=").pop();
+
+    // if quote is near 1000, remove key from key array
+    if(quotaCurrent > 950)
+    {
+        // add to bad key array
+        badAPIKeys.push(apiKey);
+    }
+}
+
 function apiCallRotator()
 {
     // increment api key index, or set to zero if reached end of array
