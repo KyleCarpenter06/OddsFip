@@ -311,7 +311,6 @@ $(async function()
     // testing
     await Promise.all([call_SR_API_DATE()]);
     await Promise.all([editJSON()]);
-    await Promise.all([putS3()]);
     //getAvailableKeys();
 });
 
@@ -366,6 +365,7 @@ async function editJSON()
         // filter missing dates array to get distinct dates
         var missingDates = allMissingDates.filter(function(item, pos){ return allMissingDates.indexOf(item) == pos });
 
+        // for each missing date
         for(let i = 0; i < missingDates.length; i++)
         {
             // set date for api to new missing date
@@ -395,13 +395,21 @@ async function editJSON()
             // rotate api keys
             apiCallRotator();
         }
+
+        // sort by date
+        fullSeason = fullSeason.sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
+
+        // if there are missing dates, stringify JSON, upload to S3
+        if(missingDates.length > 0)
+        {
+            jsonSTR = JSON.stringify(fullSeason);
+            putS3();
+        }
     }
     else
     {
         console.log("No Games Found");
     }
-
-    jsonSTR = JSON.stringify(fullSeason);
 }
 
 function putS3()
@@ -422,7 +430,7 @@ function putS3()
     });
 
     var params = {
-        Key: "mlb_season_2022_edit.json",
+        Key: "mlb_season_2022.json",
         ContentType: "application/json",
         Body: jsonSTR,
         ACL: 'public-read'

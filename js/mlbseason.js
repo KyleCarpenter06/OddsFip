@@ -1125,6 +1125,7 @@ function displayPicks()
                         if(game.betPicks[betType + keyword + "_" + dataType] !== null)
                         {
                             var betPick = game.betPicks[betType + keyword + "_" + dataType].pick;
+                            var betResult = game.betPicks[betType + keyword + "_" + dataType].result;
                             var betOutcome = game.betPicks[betType + keyword + "_" + dataType].outcome;
                             var betStrength = game.betPicks[betType + keyword + "_" + dataType].strength;
                             var icon = betOutcome === "X" ? dashIcon : betOutcome === "Y" ? checkIcon : xmarkIcon;
@@ -1171,6 +1172,7 @@ function displayPicks()
                             var betOBJ = new Object();
                             betOBJ.type = betType + keyword + "_" + dataType;
                             betOBJ.pick = betPick;
+                            betOBJ.result = betResult;
                             betOBJ.outcome = betOutcome;
                             betOBJ.strength = betStrength;
                             betArray.push(betOBJ);
@@ -1188,6 +1190,7 @@ function displayPicks()
             if(game.betPicks[betType + "final"] !== null)
             {
                 var betPick = game.betPicks[betType + "final"].pick;
+                var betResult = game.betPicks[betType + "final"].result;
                 var betOutcome = game.betPicks[betType + "final"].outcome;
                 var betStrength = game.betPicks[betType + "final"].strength;
                 var icon = betOutcome === "X" ? dashIcon : betOutcome === "Y" ? checkIcon : xmarkIcon;
@@ -1199,6 +1202,7 @@ function displayPicks()
                 var betOBJ = new Object();
                 betOBJ.type = betType + "final";
                 betOBJ.pick = betPick;
+                betOBJ.result = betResult;
                 betOBJ.outcome = betOutcome;
                 betOBJ.strength = betStrength;
                 betArray.push(betOBJ);
@@ -1447,6 +1451,7 @@ function getBetPicks(game, betPicks, keyword)
             var spreadDiff = favoriteCalc === game.betOdds.finalFavorite ? Math.abs(Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread)) : Math.abs(Math.abs(spreadCalc) + Math.abs(game.betOdds.finalSpread));
 
             betPickSpread.pick = spreadDiff < 1 ? "X" : spreadDiff >= 1 && favoriteCalc === game.betOdds.finalFavorite && Math.abs(spreadCalc) - Math.abs(game.betOdds.finalSpread) > 0 ? "C" : "N";
+            betPickSpread.result = favoriteFinal === game.betOdds.finalFavorite && spreadFinal > Math.abs(game.betOdds.finalSpread) ? "C" : "N";
             betPickSpread.strength = spreadDiff < 1 ? "X" : spreadDiff >= 1 && spreadDiff < 2 ? "L" : spreadDiff >= 2 && spreadDiff < 3 ? "M" : "H";
             betPickSpread.outcome = spreadDiff < 1 ? "X" : (spreadDiff >= 1 && favoriteFinal === game.betOdds.finalFavorite && spreadFinal > Math.abs(game.betOdds.finalSpread) && betPickSpread.pick === "C") || (spreadDiff >= 1 && (favoriteFinal !== game.betOdds.finalFavorite || (favoriteFinal === game.betOdds.finalFavorite && spreadFinal < 2)) && betPickSpread.pick === "N") ? "Y" : "N";
         }
@@ -1464,6 +1469,7 @@ function getBetPicks(game, betPicks, keyword)
             var ouDiff = Math.abs(Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder));
 
             betPickOverUnder.pick = ouDiff < 1 ? "X" : ouDiff >= 1 && Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder) > 0 ? "O" : "U";
+            //betPickOverUnder.result = 
             betPickOverUnder.strength = ouDiff < 1 ? "X" : ouDiff >= 1 && ouDiff < 2 ? "L" : ouDiff >= 2 && ouDiff < 3 ? "M" : "H";
             betPickOverUnder.outcome = ouDiff < 1 ? "X" : (ouFinal > game.betOdds.finalOverUnder && betPickOverUnder.pick === "O") || (ouFinal < game.betOdds.finalOverUnder && betPickOverUnder.pick === "U") ? "Y" : "N";
         }
