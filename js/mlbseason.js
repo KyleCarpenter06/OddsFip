@@ -1416,6 +1416,51 @@ function displayPicks()
         var percentCell = percentBRow4.insertCell(-1);
         percentCell.innerHTML = percentCorrect + "%";
     });
+
+    // get spread and over/under total stats
+    var notCoverCount, coverCount, spreadTotal, overCount, underCount, overUnderTotal;
+    notCoverCount = coverCount = spreadTotal = overCount = underCount = overUnderTotal = 0;
+    betArray.forEach(function(betArr)
+    {
+        notCoverCount = betArr.result === "N" ? notCoverCount+1 : notCoverCount;
+        coverCount = betArr.result === "C" ? coverCount+1 : coverCount;
+        spreadTotal = betArr.result === "N" || betArr.result === "C" ? spreadTotal+1 : spreadTotal;
+
+        overCount = betArr.result === "O" ? overCount+1 : overCount;
+        underCount = betArr.result === "U" ? underCount+1 : underCount;
+        overUnderTotal = betArr.result === "O" || betArr.result === "U" ? overUnderTotal+1 : overUnderTotal;
+    });
+
+    // get overview table from DOM
+    var overviewTable = document.getElementById("overview-table");
+
+    // create header and body areas
+    var overviewBody = overviewTable.createTBody();
+
+    // create row/cells
+    var overviewRow1 = overviewBody.insertRow(0);
+    var overviewNCCell1 = overviewRow1.insertCell(-1);
+    overviewNCCell1.innerHTML = "% Not Cover";
+    var overviewNCCell2 = overviewRow1.insertCell(-1);
+    overviewNCCell2.innerHTML = notCoverCount + "/" + spreadTotal + " (" + (notCoverCount/spreadTotal*100).toFixed(4) + "%)";
+
+    var overviewRow2 = overviewBody.insertRow(-1);
+    var overviewCCell1 = overviewRow2.insertCell(-1);
+    overviewCCell1.innerHTML = "% Cover";
+    var overviewCCell2 = overviewRow2.insertCell(-1);
+    overviewCCell2.innerHTML = coverCount + "/" + spreadTotal + " (" + (coverCount/spreadTotal*100).toFixed(4) + "%)";
+
+    var overviewRow3 = overviewBody.insertRow(-1);
+    var overviewOCell1 = overviewRow3.insertCell(-1);
+    overviewOCell1.innerHTML = "% Over";
+    var overviewOCell2 = overviewRow3.insertCell(-1);
+    overviewOCell2.innerHTML = overCount + "/" + overUnderTotal + " (" + (overCount/overUnderTotal*100).toFixed(4) + "%)";
+
+    var overviewRow4 = overviewBody.insertRow(-1);
+    var overviewUCell1 = overviewRow4.insertCell(-1);
+    overviewUCell1.innerHTML = "% Under";
+    var overviewUCell2 = overviewRow4.insertCell(-1);
+    overviewUCell2.innerHTML = underCount + "/" + overUnderTotal + " (" + (underCount/overUnderTotal*100).toFixed(4) + "%)";
 }
 
 function getBetDifferential(game, betData, keyword)
@@ -1469,7 +1514,7 @@ function getBetPicks(game, betPicks, keyword)
             var ouDiff = Math.abs(Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder));
 
             betPickOverUnder.pick = ouDiff < 1 ? "X" : ouDiff >= 1 && Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder) > 0 ? "O" : "U";
-            //betPickOverUnder.result = 
+            betPickOverUnder.result = Math.abs(ouCalc) - Math.abs(game.betOdds.finalOverUnder) > 0 ? "O" : "U";
             betPickOverUnder.strength = ouDiff < 1 ? "X" : ouDiff >= 1 && ouDiff < 2 ? "L" : ouDiff >= 2 && ouDiff < 3 ? "M" : "H";
             betPickOverUnder.outcome = ouDiff < 1 ? "X" : (ouFinal > game.betOdds.finalOverUnder && betPickOverUnder.pick === "O") || (ouFinal < game.betOdds.finalOverUnder && betPickOverUnder.pick === "U") ? "Y" : "N";
         }
